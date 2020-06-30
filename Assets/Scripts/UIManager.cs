@@ -1,12 +1,15 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using UnityEngine.UI;
+
 public class UIManager : MonoBehaviour
 {
 
     #region PublicUIElements
     public GameObject[] spawn;
     public GameObject LibraryPanel;
+    public Text ScalingText;
 
     #endregion
 
@@ -14,6 +17,7 @@ public class UIManager : MonoBehaviour
     private int activeSpawnIndex;
     Vector3 MousePosition, TargetPosition;
     private List<GameObject> spawnedObjects = new List<GameObject>();
+    private bool setRotation = false;
 
     [SerializeField]
     private KeyCode newObjectHotkey = KeyCode.A;
@@ -21,6 +25,7 @@ public class UIManager : MonoBehaviour
     private GameObject currentPlaceableObject;
 
     private float mouseWheelRotation;
+    private int clickCount = 0;
 
     #endregion
 
@@ -36,6 +41,7 @@ public class UIManager : MonoBehaviour
     #region PrivateMethods
 
     #endregion
+
 
     private void Start()
     {
@@ -89,6 +95,10 @@ public class UIManager : MonoBehaviour
     }
 
 
+    public void ToggleSetRotation()
+    {
+        setRotation = !setRotation;
+    }
     private void Update()
     {
         HandleNewObjectHotkey();
@@ -105,15 +115,25 @@ public class UIManager : MonoBehaviour
     {
         if (Input.GetKeyDown(newObjectHotkey))
         {
-            if (currentPlaceableObject != null)
+            if (clickCount < 3)
+            {
+                clickCount++;
+            }
+            print(clickCount);
+            if (currentPlaceableObject != null && clickCount > 2)
             {
                 Destroy(currentPlaceableObject);
+                clickCount = 0;
+                ScalingText.text = $"Rotation: {0}";
+
             }
-            else
+            else if (currentPlaceableObject == null)
             {
+
                 currentPlaceableObject = Instantiate(spawn[activeSpawnIndex]);
                 spawnedObjects.Add(currentPlaceableObject);
             }
+            mouseWheelRotation = 0;
         }
     }
 
@@ -131,14 +151,20 @@ public class UIManager : MonoBehaviour
 
     private void RotateFromMouseWheel()
     {
-        mouseWheelRotation += Input.mouseScrollDelta.y;
-        if (Input.GetButtonDown("Fire2"))
+        // if we're scaling, clamp the values, otherwise leave it alone
+        mouseWheelRotation += (setRotation) ? Input.mouseScrollDelta.y : Mathf.Clamp(Input.mouseScrollDelta.y, -2, 2);
+
+        if (clickCount == 2)
         {
-            print(mouseWheelRotation);
-            currentPlaceableObject.transform.localScale += Vector3.one * (mouseWheelRotation * 0.1f);
-            //currentPlaceableObject.transform.Scale(Vector3.up, mouseWheelRotation * 10f);
+            ScalingText.text = $"Rotation: {mouseWheelRotation}";
+            currentPlaceableObject.transform.Rotate(Vector3.up, mouseWheelRotation * 10f);
         }
-        currentPlaceableObject.transform.Rotate(Vector3.up, mouseWheelRotation * 10f);
+        else
+        {
+            ScalingText.text = $"Scale: {mouseWheelRotation}";
+            currentPlaceableObject.transform.localScale += Vector3.one * (mouseWheelRotation * 0.05f);
+        }
+
     }
 
     private void ReleaseIfClicked()
@@ -146,6 +172,7 @@ public class UIManager : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             currentPlaceableObject = null;
+            clickCount = 0;
         }
     }
 

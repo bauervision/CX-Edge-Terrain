@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     #region PublicUIElements
     public GameObject[] spawn;
     public GameObject LibraryPanel;
+    public GameObject WeatherPanel;
     public Text ScalingText;
     public Text Directions;
 
@@ -46,6 +47,15 @@ public class UIManager : MonoBehaviour
         }
     }
 
+
+    public void ToggleWeatherPanel()
+    {
+        WeatherPanel.SetActive(!WeatherPanel.activeInHierarchy);
+        // if (WeatherPanel.activeInHierarchy == true)
+        // {
+        //     steps = 0;
+        // }
+    }
     #endregion
 
     #region PrivateMethods
@@ -57,6 +67,7 @@ public class UIManager : MonoBehaviour
     {
         HideAllPanels(-1);
         LibraryPanel.SetActive(false);
+        WeatherPanel.SetActive(false);
     }
 
     public void Load_B_Cube()

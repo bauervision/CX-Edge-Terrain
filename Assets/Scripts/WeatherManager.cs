@@ -118,13 +118,13 @@ public class WeatherManager : MonoBehaviour
     public void SetNewLat(string newLat)
     {
         userLat = float.Parse(newLat);
-
+        GameObject.Find("SetTextLat").GetComponent<Text>().text = userLat.ToString();
     }
 
     public void SetNewLon(string newLon)
     {
         userLon = float.Parse(newLon);
-
+        GameObject.Find("SetTextLon").GetComponent<Text>().text = userLon.ToString();
     }
 
     public void GetLocationWeatherData()
@@ -152,7 +152,41 @@ public class WeatherManager : MonoBehaviour
         GetComponent<TOD_Sky>().World.Latitude = localWeather.lat;
         GetComponent<TOD_Sky>().World.Longitude = localWeather.lon;
         GetComponent<TOD_Sky>().Clouds.Coverage = localWeather.current.clouds / 100;
+        GetComponent<TOD_Sky>().Atmosphere.Fogginess = localWeather.current.clouds / 100;
         GetComponent<TOD_Animation>().WindDegrees = localWeather.current.wind_deg;
         GetComponent<TOD_Animation>().WindSpeed = localWeather.current.wind_speed;
+    }
+
+    private void SetNewCoords()
+    {
+        GameObject.Find("SetTextLat").GetComponent<Text>().text = userLat.ToString();
+        GameObject.Find("SetTextLon").GetComponent<Text>().text = userLon.ToString();
+    }
+    public void SetAlaska()
+    {
+        userLat = 60.256f;
+        userLon = -154.288f;
+        SetNewCoords();
+    }
+
+    public void SetDC()
+    {
+        userLat = 38.89f;
+        userLon = -77.035f;
+        SetNewCoords();
+    }
+
+    public void SetUK()
+    {
+        userLat = 53.19f;
+        userLon = -2.89f;
+        SetNewCoords();
+    }
+
+    public void SetAfghan()
+    {
+        userLat = 33.049f;
+        userLon = 65.086f;
+        SetNewCoords();
     }
 }

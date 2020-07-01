@@ -10,6 +10,7 @@ public class UIManager : MonoBehaviour
     public GameObject[] spawn;
     public GameObject LibraryPanel;
     public Text ScalingText;
+    public Text Directions;
 
     #endregion
 
@@ -26,7 +27,12 @@ public class UIManager : MonoBehaviour
 
     private float mouseWheelRotation;
     private int clickCount = 0;
+    private int steps = -1;
 
+    private string library1 = "Select an Actor to place on the terrain";
+    private string library2 = "Hit Space bar to activate placement mode";
+    private string library3 = "Use the mouse wheel to set +/- negative scaling. Then hit space bar again to enter rotation mode";
+    private string library4 = "Continue to use the mouse wheel to now set the rotation angle of the actor and then finalize placement with the Left mouse button";
     #endregion
 
     #region PublicMethods
@@ -34,6 +40,10 @@ public class UIManager : MonoBehaviour
     public void ToggleLibraryPanel()
     {
         LibraryPanel.SetActive(!LibraryPanel.activeInHierarchy);
+        if (LibraryPanel.activeInHierarchy == true)
+        {
+            steps = 0;
+        }
     }
 
     #endregion
@@ -51,26 +61,31 @@ public class UIManager : MonoBehaviour
 
     public void Load_B_Cube()
     {
+        steps = 1;
         HideAllPanels(0);
     }
 
     public void Load_B_Sphere()
     {
+        steps = 1;
         HideAllPanels(1);
     }
 
     public void Load_R_Cube()
     {
+        steps = 1;
         HideAllPanels(2);
     }
     public void Load_R_Sphere()
     {
+        steps = 1;
         HideAllPanels(3);
     }
 
 
     public void Clear()
     {
+        steps = 0;
         HideAllPanels(-1);
         // clear all spawned objects from the map
         foreach (GameObject spawned in spawnedObjects)
@@ -95,10 +110,6 @@ public class UIManager : MonoBehaviour
     }
 
 
-    public void ToggleSetRotation()
-    {
-        setRotation = !setRotation;
-    }
     private void Update()
     {
         HandleNewObjectHotkey();
@@ -109,21 +120,42 @@ public class UIManager : MonoBehaviour
             RotateFromMouseWheel();
             ReleaseIfClicked();
         }
+
+        if (LibraryPanel.activeInHierarchy == true)
+        {
+            switch (steps)
+            {
+                case 0: Directions.text = library1; break;
+                case 1: Directions.text = library2; break;
+                case 2: Directions.text = library3; break;
+                case 3: Directions.text = library4; break;
+                default: Directions.text = ""; break;
+            }
+        }
+        else
+        {
+            Directions.text = "";
+        }
+
     }
 
     private void HandleNewObjectHotkey()
     {
         if (Input.GetKeyDown(newObjectHotkey))
         {
+            steps++;
             if (clickCount < 3)
             {
                 clickCount++;
             }
-            print(clickCount);
+
+
+
             if (currentPlaceableObject != null && clickCount > 2)
             {
                 Destroy(currentPlaceableObject);
                 clickCount = 0;
+                steps = -1;
                 ScalingText.text = $"Rotation: {0}";
 
             }
@@ -156,11 +188,13 @@ public class UIManager : MonoBehaviour
 
         if (clickCount == 2)
         {
+            steps = 3;
             ScalingText.text = $"Rotation: {mouseWheelRotation}";
             currentPlaceableObject.transform.Rotate(Vector3.up, mouseWheelRotation * 10f);
         }
         else
         {
+            steps = 2;
             ScalingText.text = $"Scale: {mouseWheelRotation}";
             currentPlaceableObject.transform.localScale += Vector3.one * (mouseWheelRotation * 0.05f);
         }
@@ -173,29 +207,10 @@ public class UIManager : MonoBehaviour
         {
             currentPlaceableObject = null;
             clickCount = 0;
+            steps = -1;
         }
     }
 
-    // private void Update()
-    // {
-    //     if (Input.GetMouseButtonDown(0))
-    //     {
-    //         // make sure we don't spawn if over UI
-    //         if (EventSystem.current.IsPointerOverGameObject())
-    //             return;
-
-
-    //         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-    //         RaycastHit hitInfo;
-
-    //         if (Physics.Raycast(ray, out hitInfo, Mathf.Infinity))
-    //         {
-    //             GameObject go = Instantiate(spawn[activeSpawnIndex]);
-    //             go.transform.position = hitInfo.point;
-    //             spawnedObjects.Add(go);
-    //         }
-    //     }
-    // }
 
 
 

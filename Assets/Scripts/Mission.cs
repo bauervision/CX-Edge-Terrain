@@ -8,13 +8,15 @@ public class Mission
 {
 
     //set all dynamic actors that could be placed for this mission
-    public List<GameObject> missionActors;
+    public List<SceneActor> missionActors;
     //store the weather for the mission
     public WeatherData localMissionWeather;
+    // public Time missionTime;
 
     public Mission()
     {
-
+        this.missionActors = new List<SceneActor>();
+        this.localMissionWeather = new WeatherData();
     }
 
 

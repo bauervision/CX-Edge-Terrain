@@ -2,30 +2,25 @@ using UnityEngine;
 using System.Collections;
 
 [System.Serializable]
-
-public class SceneActor : MonoBehaviour
+public class SceneActor
 {
     public bool isBlueForce;
-    public Vector3 position;
-    public Quaternion rotation;
-    public Vector3 scale;
+    public float positionX, positionY, positionZ, rotationX, rotationY, rotationZ, scaleX, scaleY, scaleZ;
 
 
-    private void Start()
+    //called when the user finalizes the model
+    public void SetPosition(bool isBlue, Vector3 pos, Vector3 rot, Vector3 scaling)
     {
-
-    }
-
-    public void SetPosition()
-    {
-        this.position = this.transform.position;
-        this.rotation = this.transform.rotation;
-        this.scale = this.transform.localScale;
-
-        print(this.isBlueForce + "isBlue?");
-        print(this.position + "position!");
-        print(this.rotation + "rotation!");
-        print(this.scale + "scale!");
+        this.isBlueForce = isBlue;
+        this.positionX = pos.x;
+        this.positionY = pos.y;
+        this.positionZ = pos.z;
+        this.rotationX = rot.x;
+        this.rotationY = rot.y;
+        this.rotationZ = rot.z;
+        this.scaleX = scaling.x;
+        this.scaleY = scaling.y;
+        this.scaleZ = scaling.z;
     }
 
 

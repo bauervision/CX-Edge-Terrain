@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using MissionWeather;
-using DataSaving;
+
 
 
 public class UIManager : MonoBehaviour
@@ -23,14 +23,19 @@ public class UIManager : MonoBehaviour
     #region PrivateMembers
     private int activeSpawnIndex;
     Vector3 MousePosition, TargetPosition;
+    Mission thisMission;
+
     private List<GameObject> spawnedObjects = new List<GameObject>();
+    private List<SceneActor> savedObjects = new List<SceneActor>();
     private bool setRotation = false;
 
     [SerializeField]
     private KeyCode newObjectHotkey = KeyCode.A;
 
+    // a gameobject will allow us to grab transform values
     private GameObject currentPlaceableObject;
 
+    private bool isBlueForceObject;
     private float mouseWheelRotation;
     private int clickCount = 0;
     private int steps = -1;
@@ -66,6 +71,8 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        thisMission = new Mission();
+
         HideAllPanels(-1);
         LibraryPanel.SetActive(false);
         WeatherPanel.SetActive(false);
@@ -75,23 +82,27 @@ public class UIManager : MonoBehaviour
     {
         steps = 1;
         HideAllPanels(0);
+        isBlueForceObject = true;
     }
 
     public void Load_B_Sphere()
     {
         steps = 1;
         HideAllPanels(1);
+        isBlueForceObject = true;
     }
 
     public void Load_R_Cube()
     {
         steps = 1;
         HideAllPanels(2);
+        isBlueForceObject = false;
     }
     public void Load_R_Sphere()
     {
         steps = 1;
         HideAllPanels(3);
+        isBlueForceObject = false;
     }
 
 
@@ -104,7 +115,9 @@ public class UIManager : MonoBehaviour
         {
             Destroy(spawned);
         }
+        // clear the lists as well
         spawnedObjects.Clear();
+        savedObjects.Clear();
 
     }
     private void HideAllPanels(int index)
@@ -177,6 +190,7 @@ public class UIManager : MonoBehaviour
 
                 currentPlaceableObject = Instantiate(spawn[activeSpawnIndex]);
                 spawnedObjects.Add(currentPlaceableObject);
+
             }
             mouseWheelRotation = 0;
         }
@@ -218,7 +232,13 @@ public class UIManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            currentPlaceableObject.GetComponent<SceneActor>().SetPosition();
+            // now handle our Sceneactor class
+            SceneActor newActor = new SceneActor();
+            // set its transforms to currentPlaceableObject
+            newActor.SetPosition(isBlueForceObject, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, currentPlaceableObject.transform.localScale);
+            // and add it to the list
+            savedObjects.Add(newActor);
+
             currentPlaceableObject = null;
             clickCount = 0;
             steps = -1;
@@ -226,10 +246,20 @@ public class UIManager : MonoBehaviour
     }
 
 
-    public void ShowSceneStats()
+    public void SaveMission()
     {
-        SaveLoad.SetMissionData(spawnedObjects);
+        thisMission.missionActors = savedObjects;
+        thisMission.localMissionWeather = WeatherManager.localWeather;
+        SaveLoad.Save(thisMission);
     }
+
+    public void LoadMission()
+    {
+        thisMission = SaveLoad.Load();
+        Debug.Log("actors " + thisMission.missionActors.Count);
+        Debug.Log("timezone " + thisMission.localMissionWeather.timezone);
+    }
+
 
 
 }

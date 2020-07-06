@@ -5,45 +5,39 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using MissionWeather;
 
-namespace DataSaving
+
+public static class SaveLoad
 {
-    public static class SaveLoad
+    public static Mission savedMissions = new Mission();
+
+
+    // called from thw UIManager script when the user decides to save the mission
+    public static void Save(Mission missionToSave)
     {
-        public static List<Mission> savedMissions = new List<Mission>();
-
-
-        public static void SetMissionData(List<GameObject> spawnedObjects)
-        {
-
-            Mission thisMission = new Mission();
-            thisMission.missionActors = spawnedObjects;
-            thisMission.localMissionWeather = WeatherManager.localWeather;
-
-            Debug.Log(thisMission.missionActors.Count);
-            Debug.Log(thisMission.localMissionWeather.timezone);
-
-        }
-
-        public static void Save()
-        {
-            //savedMissions.Add(thisMission);
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.Create(Application.persistentDataPath + "_savedMissions.gd");
-            bf.Serialize(file, SaveLoad.savedMissions);
-            file.Close();
-        }
-
-        public static void Load()
-        {
-            if (File.Exists(Application.persistentDataPath + "_savedMissions.gd"))
-            {
-                BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Open(Application.persistentDataPath + "_savedMissions.gd", FileMode.Open);
-                SaveLoad.savedMissions = (List<Mission>)bf.Deserialize(file);
-                file.Close();
-            }
-        }
-
-
+        // create our new Mission object
+        Mission thisMission = new Mission();
+        // set its data
+        thisMission = missionToSave;
+        // format and write to file
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream file = File.Create(Application.persistentDataPath + "_savedMissions.gd");
+        bf.Serialize(file, thisMission);
+        file.Close();
     }
+
+    public static Mission Load()
+    {
+        if (File.Exists(Application.persistentDataPath + "_savedMissions.gd"))
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Open(Application.persistentDataPath + "_savedMissions.gd", FileMode.Open);
+            Mission thisMission = new Mission();
+            thisMission = (Mission)bf.Deserialize(file);
+            file.Close();
+            return thisMission;
+        }
+        return null;
+    }
+
+
 }

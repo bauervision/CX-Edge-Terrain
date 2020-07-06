@@ -2,6 +2,11 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+using MissionWeather;
+using DataSaving;
+
 
 public class UIManager : MonoBehaviour
 {
@@ -51,10 +56,6 @@ public class UIManager : MonoBehaviour
     public void ToggleWeatherPanel()
     {
         WeatherPanel.SetActive(!WeatherPanel.activeInHierarchy);
-        // if (WeatherPanel.activeInHierarchy == true)
-        // {
-        //     steps = 0;
-        // }
     }
     #endregion
 
@@ -103,6 +104,7 @@ public class UIManager : MonoBehaviour
         {
             Destroy(spawned);
         }
+        spawnedObjects.Clear();
 
     }
     private void HideAllPanels(int index)
@@ -216,6 +218,7 @@ public class UIManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            currentPlaceableObject.GetComponent<SceneActor>().SetPosition();
             currentPlaceableObject = null;
             clickCount = 0;
             steps = -1;
@@ -223,6 +226,10 @@ public class UIManager : MonoBehaviour
     }
 
 
+    public void ShowSceneStats()
+    {
+        SaveLoad.SetMissionData(spawnedObjects);
+    }
 
 
 }

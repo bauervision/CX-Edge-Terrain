@@ -5,13 +5,15 @@ using System.Collections;
 public class SceneActor
 {
     public bool isBlueForce;
+    public int actorIndex;
     public float positionX, positionY, positionZ, rotationX, rotationY, rotationZ, scaleX, scaleY, scaleZ;
 
 
     //called when the user finalizes the model
-    public void SetPosition(bool isBlue, Vector3 pos, Vector3 rot, Vector3 scaling)
+    public void SetPosition(bool isBlue, int index, Vector3 pos, Vector3 rot, Vector3 scaling)
     {
-        this.isBlueForce = isBlue;
+        this.isBlueForce = isBlue;// good or bad guy?
+        this.actorIndex = index;// which index is the mesh we chose?
         this.positionX = pos.x;
         this.positionY = pos.y;
         this.positionZ = pos.z;

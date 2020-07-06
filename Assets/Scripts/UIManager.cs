@@ -235,7 +235,7 @@ public class UIManager : MonoBehaviour
             // now handle our Sceneactor class
             SceneActor newActor = new SceneActor();
             // set its transforms to currentPlaceableObject
-            newActor.SetPosition(isBlueForceObject, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, currentPlaceableObject.transform.localScale);
+            newActor.SetPosition(isBlueForceObject, activeSpawnIndex, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, currentPlaceableObject.transform.localScale);
             // and add it to the list
             savedObjects.Add(newActor);
 
@@ -258,6 +258,17 @@ public class UIManager : MonoBehaviour
         thisMission = SaveLoad.Load();
         Debug.Log("actors " + thisMission.missionActors.Count);
         Debug.Log("timezone " + thisMission.localMissionWeather.timezone);
+
+        // for each actor saved, instantiate the proper mesh and update its transform
+        foreach (SceneActor actor in thisMission.missionActors)
+        {
+            GameObject newActor = Instantiate(spawn[actor.actorIndex]);
+            newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
+            newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+            newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
+            spawnedObjects.Add(newActor);
+
+        }
     }
 
 

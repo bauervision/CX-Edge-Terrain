@@ -54,6 +54,8 @@ namespace MissionWeather
         public Text timeText;
         public GameObject NewLocationPanel;
 
+        public static bool hasUpdated = false;
+
         #endregion
 
         #region PrivateMembers
@@ -93,15 +95,6 @@ namespace MissionWeather
                     var data = webRequest.downloadHandler.text;
                     localWeather = JsonUtility.FromJson<WeatherData>(data);
 
-                    // print(localWeather.lat);
-                    // print(localWeather.lon);
-                    // print(localWeather.timezone);
-                    // print(localWeather.current.temp);
-                    // print(localWeather.current.weather[0].main);
-
-
-
-                    //LoadingScreen.SetActive(false);
                     SetWeatherData();
                     SetSky();
                 }
@@ -150,6 +143,13 @@ namespace MissionWeather
             windSpeedText.text = $"Wind Speed: {localWeather.current.wind_speed}";
         }
 
+        public static void SetWeatherData(WeatherData loadedWeather)
+        {
+            localWeather = loadedWeather;
+            hasUpdated = true;
+
+        }
+
         private void SetSky()
         {
             GetComponent<TOD_Sky>().World.Latitude = localWeather.lat;
@@ -191,6 +191,18 @@ namespace MissionWeather
             userLat = 33.049f;
             userLon = 65.086f;
             SetNewCoords();
+        }
+
+        private void Update()
+        {
+            if (hasUpdated)
+            {
+                userLat = localWeather.lat;
+                userLon = localWeather.lon;
+                GetLocationWeatherData();
+                hasUpdated = false;
+                Debug.Log("Updated");
+            }
         }
     }
 }

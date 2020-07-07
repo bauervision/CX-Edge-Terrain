@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.Networking;
+/* Used if not webGL 
 using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
+using System.IO;*/
 using MissionWeather;
-
-
 
 public class UIManager : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class UIManager : MonoBehaviour
     public GameObject[] spawn;
     public GameObject LibraryPanel;
     public GameObject WeatherPanel;
+    public GameObject MissionPanel;
     public Text ScalingText;
     public Text Directions;
 
@@ -23,6 +25,8 @@ public class UIManager : MonoBehaviour
     #region PrivateMembers
     private int activeSpawnIndex;
     Vector3 MousePosition, TargetPosition;
+
+    Missions missionList;
     Mission thisMission;
 
     private List<GameObject> spawnedObjects = new List<GameObject>();
@@ -46,8 +50,73 @@ public class UIManager : MonoBehaviour
     private string library4 = "Continue to use the mouse wheel to now set the rotation angle of the actor and then finalize placement with the Left mouse button";
     #endregion
 
-    #region PublicMethods
 
+    #region IEnumerators
+
+    IEnumerator PostSavedData()
+    {
+        string data = JsonUtility.ToJson(thisMission);
+        Debug.Log(data);
+        string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/addSavedMission";
+
+        using (UnityWebRequest webRequest = UnityWebRequest.Post(url, data))
+        {
+            // Request and wait for the desired page.
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.isNetworkError)
+            {
+                Debug.Log("Error Posting Data: " + webRequest.error);
+            }
+            else
+            {
+                Debug.Log($"Successful Post of Mission Actors and Mission Weather");
+
+            }
+        }
+    }
+
+    IEnumerator GetSavedData(string url)
+    {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+        {
+            // Request and wait for the desired page.
+            yield return webRequest.SendWebRequest();
+
+            string[] pages = url.Split('/');
+            int page = pages.Length - 1;
+
+            if (webRequest.isNetworkError)
+            {
+                Debug.Log(pages[page] + ": Error: " + webRequest.error);
+            }
+            else
+            {
+                var data = webRequest.downloadHandler.text;
+                missionList = JsonUtility.FromJson<Missions>(data);
+
+                print("thisMission " + missionList.missions[0].name);
+                // WeatherManager.SetWeatherData(thisMission.localMissionWeather);
+
+                // // for each actor saved, instantiate the proper mesh and update its transform
+                // foreach (SceneActor actor in thisMission.missionActors)
+                // {
+                //     GameObject newActor = Instantiate(spawn[actor.actorIndex]);
+                //     newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
+                //     newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+                //     newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
+                //     spawnedObjects.Add(newActor);
+
+                // }
+
+
+            }
+        }
+    }
+
+    #endregion
+
+    #region PublicMethods
     public void ToggleLibraryPanel()
     {
         LibraryPanel.SetActive(!LibraryPanel.activeInHierarchy);
@@ -57,25 +126,19 @@ public class UIManager : MonoBehaviour
         }
     }
 
-
     public void ToggleWeatherPanel()
     {
         WeatherPanel.SetActive(!WeatherPanel.activeInHierarchy);
+        if (MissionPanel.activeInHierarchy)
+            MissionPanel.SetActive(false);
     }
-    #endregion
 
-    #region PrivateMethods
-
-    #endregion
-
-
-    private void Start()
+    public void ToggleMissionPanel()
     {
-        thisMission = new Mission();
+        MissionPanel.SetActive(!MissionPanel.activeInHierarchy);
 
-        HideAllPanels(-1);
-        LibraryPanel.SetActive(false);
-        WeatherPanel.SetActive(false);
+        if (WeatherPanel.activeInHierarchy)
+            WeatherPanel.SetActive(false);
     }
 
     public void Load_B_Cube()
@@ -120,6 +183,42 @@ public class UIManager : MonoBehaviour
         savedObjects.Clear();
 
     }
+
+    public void SaveMission()
+    {
+        thisMission.missionActors = savedObjects;
+        thisMission.localMissionWeather = WeatherManager.localWeather;
+        // SaveLoad.Save(thisMission);
+        StartCoroutine(PostSavedData());
+    }
+
+    public void LoadMission()
+    {
+        /* WebGL doesn't use binary file saving */
+        //thisMission = SaveLoad.Load();
+
+        // need to fetch from api instead
+        StartCoroutine(GetSavedData("https://us-central1-octo-ar-demo.cloudfunctions.net/getSavedMissions"));
+
+
+    }
+    #endregion
+
+
+
+    #region PrivateMethods
+
+    private void Start()
+    {
+        thisMission = new Mission();
+
+        HideAllPanels(-1);
+        LibraryPanel.SetActive(false);
+        WeatherPanel.SetActive(false);
+        MissionPanel.SetActive(false);
+    }
+
+
     private void HideAllPanels(int index)
     {
         if (index != -1)
@@ -245,32 +344,5 @@ public class UIManager : MonoBehaviour
         }
     }
 
-
-    public void SaveMission()
-    {
-        thisMission.missionActors = savedObjects;
-        thisMission.localMissionWeather = WeatherManager.localWeather;
-        SaveLoad.Save(thisMission);
-    }
-
-    public void LoadMission()
-    {
-        thisMission = SaveLoad.Load();
-        Debug.Log("actors " + thisMission.missionActors.Count);
-        Debug.Log("timezone " + thisMission.localMissionWeather.timezone);
-
-        // for each actor saved, instantiate the proper mesh and update its transform
-        foreach (SceneActor actor in thisMission.missionActors)
-        {
-            GameObject newActor = Instantiate(spawn[actor.actorIndex]);
-            newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
-            newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
-            newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
-            spawnedObjects.Add(newActor);
-
-        }
-    }
-
-
-
+    #endregion
 }

@@ -145,8 +145,10 @@ namespace MissionWeather
 
         public static void SetWeatherData(WeatherData loadedWeather)
         {
+
             localWeather = loadedWeather;
             hasUpdated = true;
+            Debug.Log("SetWeatherData" + localWeather);
 
         }
 

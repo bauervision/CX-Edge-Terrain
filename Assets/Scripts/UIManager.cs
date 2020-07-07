@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.Networking;
+using System.Text;
 /* Used if not webGL 
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;*/
@@ -58,22 +59,15 @@ public class UIManager : MonoBehaviour
         string data = JsonUtility.ToJson(thisMission);
         Debug.Log(data);
         string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/addSavedMission";
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
 
-        using (UnityWebRequest webRequest = UnityWebRequest.Post(url, data))
-        {
-            // Request and wait for the desired page.
-            yield return webRequest.SendWebRequest();
+        yield return request.Send();
 
-            if (webRequest.isNetworkError)
-            {
-                Debug.Log("Error Posting Data: " + webRequest.error);
-            }
-            else
-            {
-                Debug.Log($"Successful Post of Mission Actors and Mission Weather");
-
-            }
-        }
+        Debug.Log("Status Code: " + request.responseCode);
     }
 
     IEnumerator GetSavedData(string url)
@@ -83,32 +77,29 @@ public class UIManager : MonoBehaviour
             // Request and wait for the desired page.
             yield return webRequest.SendWebRequest();
 
-            string[] pages = url.Split('/');
-            int page = pages.Length - 1;
-
             if (webRequest.isNetworkError)
             {
-                Debug.Log(pages[page] + ": Error: " + webRequest.error);
+                Debug.Log("Error: " + webRequest.error);
             }
             else
             {
                 var data = webRequest.downloadHandler.text;
+
                 missionList = JsonUtility.FromJson<Missions>(data);
 
-                print("thisMission " + missionList.missions[0].name);
-                // WeatherManager.SetWeatherData(thisMission.localMissionWeather);
-
                 // // for each actor saved, instantiate the proper mesh and update its transform
-                // foreach (SceneActor actor in thisMission.missionActors)
-                // {
-                //     GameObject newActor = Instantiate(spawn[actor.actorIndex]);
-                //     newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
-                //     newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
-                //     newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
-                //     spawnedObjects.Add(newActor);
+                foreach (SceneActor actor in missionList.missions[0].missionActors)
+                {
+                    GameObject newActor = Instantiate(spawn[actor.actorIndex]);
+                    newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
+                    newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+                    newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
+                    spawnedObjects.Add(newActor);
 
-                // }
+                }
 
+                // send weather data over to the weather manager
+                WeatherManager.SetWeatherData(missionList.missions[0].localMissionWeather);
 
             }
         }

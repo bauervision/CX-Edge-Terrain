@@ -148,8 +148,6 @@ namespace MissionWeather
 
             localWeather = loadedWeather;
             hasUpdated = true;
-            Debug.Log("SetWeatherData" + localWeather);
-
         }
 
         private void SetSky()
@@ -203,7 +201,6 @@ namespace MissionWeather
                 userLon = localWeather.lon;
                 GetLocationWeatherData();
                 hasUpdated = false;
-                Debug.Log("Updated");
             }
         }
     }

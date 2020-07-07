@@ -4,13 +4,23 @@ using System.Collections.Generic;
 using MissionWeather;
 
 [System.Serializable]
-public class Missions
+public class Missions : IEnumerable<Mission>
 {
     public List<Mission> missions;
 
     public Missions()
     {
         List<Mission> missions = new List<Mission>();
+    }
+
+    public IEnumerator<Mission> GetEnumerator()
+    {
+        return missions.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return missions.GetEnumerator();
     }
 }
 

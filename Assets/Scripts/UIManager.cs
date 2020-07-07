@@ -20,10 +20,14 @@ public class UIManager : MonoBehaviour
     public GameObject MissionPanel;
     public Text ScalingText;
     public Text Directions;
+    public Dropdown dropDown;
+    public Text currentMission;
 
     #endregion
 
     #region PrivateMembers
+    private int missionIndexToLoad;
+    private List<Dropdown.OptionData> m_dropDownOptions = new List<Dropdown.OptionData>();
     private int activeSpawnIndex;
     Vector3 MousePosition, TargetPosition;
 
@@ -68,6 +72,12 @@ public class UIManager : MonoBehaviour
         yield return request.Send();
 
         Debug.Log("Status Code: " + request.responseCode);
+        // add this new mission to dropdown options
+        Dropdown.OptionData newOption = new Dropdown.OptionData();
+        newOption.text = thisMission.name;
+        m_dropDownOptions.Add(newOption);
+        // and to the missionlist
+        missionList.missions.Add(thisMission);
     }
 
     IEnumerator GetSavedData(string url)
@@ -87,6 +97,18 @@ public class UIManager : MonoBehaviour
 
                 missionList = JsonUtility.FromJson<Missions>(data);
 
+                // run through and populate our dropdown with saved missions
+                foreach (Mission mission in missionList)
+                {
+                    Dropdown.OptionData newOption = new Dropdown.OptionData();
+                    newOption.text = mission.name;
+                    m_dropDownOptions.Add(newOption);
+                }
+
+                dropDown.options = m_dropDownOptions;
+
+
+
                 // // for each actor saved, instantiate the proper mesh and update its transform
                 foreach (SceneActor actor in missionList.missions[0].missionActors)
                 {
@@ -105,6 +127,36 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    IEnumerator LoadAvailableMissions(string url)
+    {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+        {
+            // Request and wait for the desired page.
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.isNetworkError)
+            {
+                Debug.Log("Error: " + webRequest.error);
+            }
+            else
+            {
+                var data = webRequest.downloadHandler.text;
+
+                missionList = JsonUtility.FromJson<Missions>(data);
+
+                // run through and populate our dropdown with saved missions
+                foreach (Mission mission in missionList)
+                {
+                    Dropdown.OptionData newOption = new Dropdown.OptionData();
+                    newOption.text = mission.name;
+                    m_dropDownOptions.Add(newOption);
+                }
+
+                dropDown.options = m_dropDownOptions;
+
+            }
+        }
+    }
     #endregion
 
     #region PublicMethods
@@ -183,15 +235,42 @@ public class UIManager : MonoBehaviour
         StartCoroutine(PostSavedData());
     }
 
+    // triggered from setting the dropdown
+    public void SetMissionToLoad(int missionIndex)
+    {
+        missionIndexToLoad = missionIndex;
+    }
+
     public void LoadMission()
     {
-        /* WebGL doesn't use binary file saving */
-        //thisMission = SaveLoad.Load();
+        /* WebGL doesn't use binary file saving --legacy for this demo, but worth saving for the exe version
+        thisMission = SaveLoad.Load();*/
 
-        // need to fetch from api instead
-        StartCoroutine(GetSavedData("https://us-central1-octo-ar-demo.cloudfunctions.net/getSavedMissions"));
+        /* when we hit the load mission button, update all scene data with the desired mission */
+
+        // first clear out any current scene data
+        Clear();
+        // for each actor saved, instantiate the proper mesh and update its transform
+        foreach (SceneActor actor in missionList.missions[missionIndexToLoad].missionActors)
+        {
+            GameObject newActor = Instantiate(spawn[actor.actorIndex]);
+            newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
+            newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+            newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
+            spawnedObjects.Add(newActor);
+
+        }
+
+        // send weather data over to the weather manager
+        WeatherManager.SetWeatherData(missionList.missions[missionIndexToLoad].localMissionWeather);
+        currentMission.text = missionList.missions[missionIndexToLoad].name;
 
 
+    }
+
+    public void SetMissionName(string newName)
+    {
+        thisMission.name = newName;
     }
     #endregion
 
@@ -201,12 +280,17 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        // we need to fetch the available missions
+        StartCoroutine(LoadAvailableMissions("https://us-central1-octo-ar-demo.cloudfunctions.net/getSavedMissions"));
+
         thisMission = new Mission();
 
         HideAllPanels(-1);
         LibraryPanel.SetActive(false);
         WeatherPanel.SetActive(false);
         MissionPanel.SetActive(false);
+        currentMission.text = "Unknown Mission Name";
+
     }
 
 

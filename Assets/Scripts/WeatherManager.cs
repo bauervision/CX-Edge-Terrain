@@ -18,6 +18,14 @@ namespace MissionWeather
         public string timezone;
         public WeatherDetails current;
 
+        public WeatherData()
+        {
+            this.lat = 0.0f;
+            this.lon = 0.0f;
+            this.timezone = "Unknown";
+            this.current = new WeatherDetails();
+        }
+
     }
 
     [System.Serializable]
@@ -30,6 +38,17 @@ namespace MissionWeather
         public float wind_speed;
         public float wind_deg;
         public List<Forecast> weather;
+
+        public WeatherDetails()
+        {
+            this.temp = "NA";
+            this.humidity = "NA";
+            this.clouds = 0.0f;
+            this.visibility = "NA";
+            this.wind_deg = 0.0f;
+            this.wind_speed = 0.0f;
+            this.weather = new List<Forecast>();
+        }
     }
 
     [System.Serializable]
@@ -37,6 +56,11 @@ namespace MissionWeather
     {
         public string id;
         public string main;
+        public Forecast()
+        {
+            this.id = "NA";
+            this.main = "NA";
+        }
     }
 
     public class WeatherManager : MonoBehaviour

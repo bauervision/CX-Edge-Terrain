@@ -26,7 +26,7 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region PrivateMembers
-    private int missionIndexToLoad;
+    private int missionIndexToLoad = 0;
     private List<Dropdown.OptionData> m_dropDownOptions = new List<Dropdown.OptionData>();
     private int activeSpawnIndex;
     Vector3 MousePosition, TargetPosition;
@@ -53,6 +53,11 @@ public class UIManager : MonoBehaviour
     private string library2 = "Hit Space bar to activate placement mode";
     private string library3 = "Use the mouse wheel to set +/- negative scaling. Then hit space bar again to enter rotation mode";
     private string library4 = "Continue to use the mouse wheel to now set the rotation angle of the actor and then finalize placement with the Left mouse button";
+
+    private string loadingData = "Loading Mission Data...";
+
+    private string savingData = "Saving Mission Data...";
+    private string savingDataSuccess = "Mission Saved Successfully!";
     #endregion
 
 
@@ -69,15 +74,25 @@ public class UIManager : MonoBehaviour
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
 
-        yield return request.Send();
+        yield return request.SendWebRequest();
+        if (request.isNetworkError)
+        {
+            Debug.Log("Error: " + request.error);
+        }
+        else
+        {
+            // Debug.Log("Status Code: " + request.responseCode);
+            HandleDirectionsText(savingDataSuccess);
 
-        Debug.Log("Status Code: " + request.responseCode);
-        // add this new mission to dropdown options
-        Dropdown.OptionData newOption = new Dropdown.OptionData();
-        newOption.text = thisMission.name;
-        m_dropDownOptions.Add(newOption);
-        // and to the missionlist
-        missionList.missions.Add(thisMission);
+            // add this new mission to dropdown options
+            Dropdown.OptionData newOption = new Dropdown.OptionData();
+            newOption.text = thisMission.name;
+            m_dropDownOptions.Add(newOption);
+            // and to the missionlist
+            missionList.missions.Add(thisMission);
+
+        }
+
     }
 
     IEnumerator GetSavedData(string url)
@@ -144,6 +159,11 @@ public class UIManager : MonoBehaviour
 
                 missionList = JsonUtility.FromJson<Missions>(data);
 
+                // set the first option as the "Select Mission" option
+                Dropdown.OptionData firstOption = new Dropdown.OptionData();
+                firstOption.text = "Select a mission...";
+                m_dropDownOptions.Add(firstOption);
+
                 // run through and populate our dropdown with saved missions
                 foreach (Mission mission in missionList)
                 {
@@ -153,10 +173,22 @@ public class UIManager : MonoBehaviour
                 }
 
                 dropDown.options = m_dropDownOptions;
-
+                HandleDirectionsText($"All {missionList.missions.Count} missions successfully loaded!");
             }
         }
     }
+
+    IEnumerator Countdown(int seconds)
+    {
+        int counter = seconds;
+        while (counter > 0)
+        {
+            yield return new WaitForSeconds(1);
+            counter--;
+        }
+        Directions.text = "";
+    }
+
     #endregion
 
     #region PublicMethods
@@ -211,7 +243,7 @@ public class UIManager : MonoBehaviour
         isBlueForceObject = false;
     }
 
-
+    // called from the UI
     public void Clear()
     {
         steps = 0;
@@ -224,21 +256,26 @@ public class UIManager : MonoBehaviour
         // clear the lists as well
         spawnedObjects.Clear();
         savedObjects.Clear();
-
+        // create a new mission
+        NewMission(false);
     }
+
 
     public void SaveMission()
     {
         thisMission.missionActors = savedObjects;
         thisMission.localMissionWeather = WeatherManager.localWeather;
         // SaveLoad.Save(thisMission);
+        HandleDirectionsText(savingData);
         StartCoroutine(PostSavedData());
     }
 
     // triggered from setting the dropdown
     public void SetMissionToLoad(int missionIndex)
     {
-        missionIndexToLoad = missionIndex;
+        print(missionIndex);
+        print(missionList.missions.Count);
+        missionIndexToLoad = missionIndex - 1; //account for the "select mission" option
     }
 
     public void LoadMission()
@@ -249,7 +286,11 @@ public class UIManager : MonoBehaviour
         /* when we hit the load mission button, update all scene data with the desired mission */
 
         // first clear out any current scene data
-        Clear();
+        if (spawnedObjects.Count > 0)
+        {
+            ClearBeforeLoad();
+        }
+
         // for each actor saved, instantiate the proper mesh and update its transform
         foreach (SceneActor actor in missionList.missions[missionIndexToLoad].missionActors)
         {
@@ -264,32 +305,68 @@ public class UIManager : MonoBehaviour
         // send weather data over to the weather manager
         WeatherManager.SetWeatherData(missionList.missions[missionIndexToLoad].localMissionWeather);
         currentMission.text = missionList.missions[missionIndexToLoad].name;
-
-
+        HandleDirectionsText($"{missionList.missions[missionIndexToLoad].name} loaded successfully!");
+        // hide the mission panel once we load so user can see the whole scene view
+        MissionPanel.SetActive(false);
     }
 
     public void SetMissionName(string newName)
     {
         thisMission.name = newName;
+        HandleDirectionsText($"Mission name saved as {newName}!");
     }
+
     #endregion
 
 
 
     #region PrivateMethods
 
+    private void NewMission(bool initialLoad)
+    {
+        thisMission = new Mission();
+        missionIndexToLoad = -1;
+        currentMission.text = "Unknown Mission Name";
+        if (!initialLoad)
+            HandleDirectionsText("Scene has been cleared of all data");
+    }
+
+    private void ClearBeforeLoad()
+    {
+        steps = 0;
+        HideAllPanels(-1);
+        // clear all spawned objects from the map
+        foreach (GameObject spawned in spawnedObjects)
+        {
+            Destroy(spawned);
+        }
+        // clear the lists as well
+        spawnedObjects.Clear();
+        savedObjects.Clear();
+        // create a new mission
+        NewMission(false);
+
+
+    }
+    private void HandleDirectionsText(string newText)
+    {
+        Directions.text = newText;
+        StartCoroutine(Countdown(3));
+    }
+
     private void Start()
     {
         // we need to fetch the available missions
+        HandleDirectionsText(loadingData);
         StartCoroutine(LoadAvailableMissions("https://us-central1-octo-ar-demo.cloudfunctions.net/getSavedMissions"));
 
-        thisMission = new Mission();
+        NewMission(true);
 
         HideAllPanels(-1);
         LibraryPanel.SetActive(false);
         WeatherPanel.SetActive(false);
         MissionPanel.SetActive(false);
-        currentMission.text = "Unknown Mission Name";
+
 
     }
 
@@ -332,10 +409,7 @@ public class UIManager : MonoBehaviour
                 default: Directions.text = ""; break;
             }
         }
-        else
-        {
-            Directions.text = "";
-        }
+
 
     }
 

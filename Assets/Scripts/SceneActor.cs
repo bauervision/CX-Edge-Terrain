@@ -14,15 +14,15 @@ public class SceneActor
     {
         this.isBlueForce = isBlue;// good or bad guy?
         this.actorIndex = index;// which index is the mesh we chose?
-        this.positionX = pos.x;
-        this.positionY = pos.y;
-        this.positionZ = pos.z;
-        this.rotationX = rot.x;
-        this.rotationY = rot.y;
-        this.rotationZ = rot.z;
-        this.scaleX = scaling.x;
-        this.scaleY = scaling.y;
-        this.scaleZ = scaling.z;
+        this.positionX = (float)System.Math.Round(pos.x, 2);
+        this.positionY = (float)System.Math.Round(pos.y, 2);
+        this.positionZ = (float)System.Math.Round(pos.z, 2);
+        this.rotationX = (float)System.Math.Round(rot.x, 2);
+        this.rotationY = (float)System.Math.Round(rot.y, 2);
+        this.rotationZ = (float)System.Math.Round(rot.z, 2);
+        this.scaleX = (float)System.Math.Round(scaling.x, 2);
+        this.scaleY = (float)System.Math.Round(scaling.y, 2);
+        this.scaleZ = (float)System.Math.Round(scaling.z, 2);
     }
 
 

@@ -15,7 +15,7 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
   m_Fog: 0
-  m_FogColor: {r: 0.6311975, g: 0.65326196, b: 0.52515846, a: 1}
+  m_FogColor: {r: 0.6311975, g: 0.6532619, b: 0.52515846, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.01
   m_LinearFogStart: 0
@@ -1967,6 +1967,7 @@ MonoBehaviour:
   lonText: {fileID: 1699316728}
   timeText: {fileID: 533045514}
   NewLocationPanel: {fileID: 590488950}
+  timeSlider: {fileID: 650266936}
 --- !u!1 &443122347
 GameObject:
   m_ObjectHideFlags: 0
@@ -3322,7 +3323,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 24
   m_WholeNumbers: 0
-  m_Value: 8.9
+  m_Value: 8
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -7496,18 +7497,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1405238811}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 674214286}
-        m_MethodName: LoadMission
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1405238811
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10025,19 +10015,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b2498b078e1b54bd68239c9a29c28a81, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.24762094
+      value: -0.061369523
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b2498b078e1b54bd68239c9a29c28a81, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.79523516
+      value: 0.8306316
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b2498b078e1b54bd68239c9a29c28a81, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.3394605
+      value: -0.4761395
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b2498b078e1b54bd68239c9a29c28a81, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.43709433
+      value: 0.2820923
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b2498b078e1b54bd68239c9a29c28a81, type: 3}
       propertyPath: m_LocalPosition.x

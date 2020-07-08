@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
+
 namespace MissionWeather
 {
 
@@ -16,12 +17,14 @@ namespace MissionWeather
         public float lat;
         public float lon;
         public string timezone;
+        public float time;
         public WeatherDetails current;
 
         public WeatherData()
         {
             this.lat = 0.0f;
             this.lon = 0.0f;
+            this.time = 8.0f;// default to 8am
             this.timezone = "Unknown";
             this.current = new WeatherDetails();
         }
@@ -31,6 +34,7 @@ namespace MissionWeather
     [System.Serializable]
     public class WeatherDetails
     {
+        public int dt;
         public string temp;
         public string humidity;
         public float clouds;
@@ -41,6 +45,7 @@ namespace MissionWeather
 
         public WeatherDetails()
         {
+            this.dt = System.DateTime.UtcNow.Hour;
             this.temp = "NA";
             this.humidity = "NA";
             this.clouds = 0.0f;
@@ -77,8 +82,10 @@ namespace MissionWeather
         public Text lonText;
         public Text timeText;
         public GameObject NewLocationPanel;
+        public Slider timeSlider;
 
         public static bool hasUpdated = false;
+        public static int loadedTimeStamp = 0;
 
         #endregion
 
@@ -88,11 +95,43 @@ namespace MissionWeather
 
         #endregion
 
-
         public static WeatherData localWeather;
         #endregion
 
 
+        private System.DateTime UnixTimeStampToDateTime(int unixTimeStamp)
+        {
+            System.DateTime dtDateTime = new System.DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+            return dtDateTime;
+        }
+
+
+        private float ConvertTimeToFloat(System.DateTime timestamp)
+        {
+            return (float)UnixTimeStampToDateTime(localWeather.current.dt).Hour + ((float)UnixTimeStampToDateTime(localWeather.current.dt).Minute * 0.01f);
+
+        }
+
+        private void ConvertFloatToTimestamp(double roundedValue)
+        {
+            // Now to set a new timestamp based on this passed in value,
+            // first convert the float to a string and split it apart
+            string floatString = roundedValue.ToString();
+            string[] split = floatString.Split('.');
+            // parse those strings into integers
+            int hour = int.Parse(split[0]);
+            int min = (int)Mathf.Clamp(float.Parse(split[1]), 0, 59);
+
+            // now convert to date time to unix timestamp
+            var dateTime = new System.DateTime(System.DateTime.Now.Year, System.DateTime.Now.Month, System.DateTime.Now.Day, hour, min, 0, System.DateTimeKind.Unspecified);
+            var dateTimeOffset = new System.DateTimeOffset(dateTime);
+            var unixDateTime = (int)dateTimeOffset.ToUnixTimeSeconds();
+
+            //int convertedTime = (int)dateTime.Subtract(new System.DateTime(1970, 1, 1)).TotalMilliseconds;
+            // now update localweather.current.dt with converted unix timestamp
+            localWeather.current.dt = unixDateTime;
+        }
         // Launch the fetch to the API and grab the data
         void Start()
         {
@@ -119,6 +158,12 @@ namespace MissionWeather
                     var data = webRequest.downloadHandler.text;
                     localWeather = JsonUtility.FromJson<WeatherData>(data);
 
+                    // handle the initial time load
+                    if (loadedTimeStamp != 0)
+                    {
+                        localWeather.current.dt = loadedTimeStamp;
+                    }
+
                     SetWeatherData();
                     SetSky();
                 }
@@ -127,8 +172,12 @@ namespace MissionWeather
 
         public void SetTime(float value)
         {
-            GetComponent<TOD_Sky>().Cycle.Hour = value;
-            timeText.text = $"Hour:{value}";
+            // drop all but 2 decimals and set the sky hour
+            double roundedValue = System.Math.Round(value, 2);
+            GetComponent<TOD_Sky>().Cycle.Hour = (float)roundedValue;
+            timeText.text = $"Hour:{roundedValue}";
+            ConvertFloatToTimestamp(roundedValue);
+
         }
 
         public void ToggleNewLocationPanel()
@@ -169,9 +218,10 @@ namespace MissionWeather
 
         public static void SetWeatherData(WeatherData loadedWeather)
         {
-
             localWeather = loadedWeather;
             hasUpdated = true;
+            // since this is triggered from the UI mission load, we need to load the time that the user saved
+            loadedTimeStamp = loadedWeather.current.dt;
         }
 
         private void SetSky()
@@ -180,8 +230,18 @@ namespace MissionWeather
             GetComponent<TOD_Sky>().World.Longitude = localWeather.lon;
             GetComponent<TOD_Sky>().Clouds.Coverage = localWeather.current.clouds / 100;
             GetComponent<TOD_Sky>().Atmosphere.Fogginess = localWeather.current.clouds / 100;
+            GetComponent<TOD_Sky>().Cycle.Year = System.DateTime.Now.Year;
+            GetComponent<TOD_Sky>().Cycle.Month = System.DateTime.Now.Month;
+            GetComponent<TOD_Sky>().Cycle.Day = System.DateTime.Now.Day;
             GetComponent<TOD_Animation>().WindDegrees = localWeather.current.wind_deg;
             GetComponent<TOD_Animation>().WindSpeed = localWeather.current.wind_speed;
+
+            //now set the sky based on current time, or user specified time from the mission loaded
+            float timeFloat = ConvertTimeToFloat(UnixTimeStampToDateTime(localWeather.current.dt));
+
+            Debug.Log("Set Sky Time" + UnixTimeStampToDateTime(localWeather.current.dt));
+            SetTime(timeFloat);
+            timeSlider.value = timeFloat;
         }
 
         private void SetNewCoords()

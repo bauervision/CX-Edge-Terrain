@@ -66,7 +66,7 @@ public class UIManager : MonoBehaviour
     IEnumerator PostSavedData()
     {
         string data = JsonUtility.ToJson(thisMission);
-        Debug.Log(data);
+
         string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/addSavedMission";
         var request = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
@@ -81,9 +81,9 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            // Debug.Log("Status Code: " + request.responseCode);
+            Debug.Log("Status Code: " + request.responseCode);
             HandleDirectionsText(savingDataSuccess);
-
+            MissionPanel.SetActive(false);
             // add this new mission to dropdown options
             Dropdown.OptionData newOption = new Dropdown.OptionData();
             newOption.text = thisMission.name;
@@ -273,8 +273,7 @@ public class UIManager : MonoBehaviour
     // triggered from setting the dropdown
     public void SetMissionToLoad(int missionIndex)
     {
-        print(missionIndex);
-        print(missionList.missions.Count);
+
         missionIndexToLoad = missionIndex - 1; //account for the "select mission" option
     }
 
@@ -290,6 +289,7 @@ public class UIManager : MonoBehaviour
         {
             ClearBeforeLoad();
         }
+
 
         // for each actor saved, instantiate the proper mesh and update its transform
         foreach (SceneActor actor in missionList.missions[missionIndexToLoad].missionActors)
@@ -313,6 +313,7 @@ public class UIManager : MonoBehaviour
     public void SetMissionName(string newName)
     {
         thisMission.name = newName;
+        currentMission.text = newName;
         HandleDirectionsText($"Mission name saved as {newName}!");
     }
 
@@ -325,15 +326,16 @@ public class UIManager : MonoBehaviour
     private void NewMission(bool initialLoad)
     {
         thisMission = new Mission();
-        missionIndexToLoad = -1;
         currentMission.text = "Unknown Mission Name";
         if (!initialLoad)
             HandleDirectionsText("Scene has been cleared of all data");
+
+
     }
 
     private void ClearBeforeLoad()
     {
-        steps = 0;
+        steps = -1;
         HideAllPanels(-1);
         // clear all spawned objects from the map
         foreach (GameObject spawned in spawnedObjects)
@@ -398,17 +400,18 @@ public class UIManager : MonoBehaviour
             ReleaseIfClicked();
         }
 
-        if (LibraryPanel.activeInHierarchy == true)
+        // TODO: need another condition for the tutorial
+        // if (LibraryPanel.activeInHierarchy == true)
+        // {
+        switch (steps)
         {
-            switch (steps)
-            {
-                case 0: Directions.text = library1; break;
-                case 1: Directions.text = library2; break;
-                case 2: Directions.text = library3; break;
-                case 3: Directions.text = library4; break;
-                default: Directions.text = ""; break;
-            }
+            case 0: Directions.text = library1; break;
+            case 1: Directions.text = library2; break;
+            case 2: Directions.text = library3; break;
+            case 3: Directions.text = library4; break;
+            default: break;
         }
+        //}
 
 
     }

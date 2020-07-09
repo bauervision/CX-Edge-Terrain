@@ -72,7 +72,10 @@ public class UIManager : MonoBehaviour
         byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
         request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Access-Control-Allow-Headers", "*");
+        request.SetRequestHeader("Access-Control-Allow-Origin", "https://cx-edge-terrain.web.app");
 
         yield return request.SendWebRequest();
         if (request.isNetworkError)
@@ -84,12 +87,13 @@ public class UIManager : MonoBehaviour
             Debug.Log("Status Code: " + request.responseCode);
             HandleDirectionsText(savingDataSuccess);
             MissionPanel.SetActive(false);
-            // add this new mission to dropdown options
-            Dropdown.OptionData newOption = new Dropdown.OptionData();
-            newOption.text = thisMission.name;
-            m_dropDownOptions.Add(newOption);
-            // and to the missionlist
-            missionList.missions.Add(thisMission);
+
+            //TODO: add this new mission to dropdown options
+            //         Dropdown.OptionData newOption = new Dropdown.OptionData();
+            // newOption.text = thisMission.name;
+            // m_dropDownOptions.Add(newOption);
+            // // and to the missionlist
+            // missionList.missions.Add(thisMission);
 
         }
 
@@ -479,10 +483,27 @@ public class UIManager : MonoBehaviour
 
     }
 
+    /*
+    ReleaseIfClicked: finalizes the placement of the model on the terrain
+    */
     private void ReleaseIfClicked()
     {
         if (Input.GetMouseButtonDown(0))
         {
+            // we need to turn on the collider once we place the gameobject
+            // if index is 0 or 2 then its a cube model
+            if (activeSpawnIndex == 0 || activeSpawnIndex == 2)
+            {
+                // so enable the box collider
+                currentPlaceableObject.GetComponent<BoxCollider>().enabled = true;
+            }
+            else
+            {
+                currentPlaceableObject.GetComponent<SphereCollider>().enabled = true;
+            }
+
+            // Now set some data to retrieve from the model when hovering
+
             // now handle our Sceneactor class
             SceneActor newActor = new SceneActor();
             // set its transforms to currentPlaceableObject

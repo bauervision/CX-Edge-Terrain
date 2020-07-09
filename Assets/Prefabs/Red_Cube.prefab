@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 664945945820942789}
   - component: {fileID: 445920950232978112}
   - component: {fileID: 544242164553482256}
+  - component: {fileID: -1534362442943300406}
   m_Layer: 0
   m_Name: Red_Cube
   m_TagString: Untagged
@@ -93,3 +94,17 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-1534362442943300406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7491136251718086396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cfa4d7b90b2a504a969f195c2c0115a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverColor: {r: 0.13794944, g: 0.9433962, b: 0.20744501, a: 1}
+  isCube: 1

@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 public class SelectModel : MonoBehaviour
 {
-    SceneActor mySceneData;
+    public SceneActor mySceneData;
 
     public static int myID;
     public Color hoverColor = new Color(255, 255, 255);
@@ -24,13 +24,10 @@ public class SelectModel : MonoBehaviour
     {
         if (isSelected)
         {
-            print("Old X = " + mySceneData.positionX);
             mySceneData.positionX = (float)System.Math.Round(transform.position.x, 2);
             mySceneData.positionY = (float)System.Math.Round(transform.position.y, 2);
             mySceneData.positionZ = (float)System.Math.Round(transform.position.z, 2);
-            print("New X = " + mySceneData.positionX);
         }
-
     }
 
     private void Start()
@@ -64,9 +61,6 @@ public class SelectModel : MonoBehaviour
             GetComponent<SphereCollider>().enabled = false;
     }
 
-
-
-
     private void MoveToMouse()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -81,10 +75,7 @@ public class SelectModel : MonoBehaviour
     private void Update()
     {
         if (isSelected)
-        {
             MoveToMouse();
-
-        }
 
         if (Input.GetMouseButtonDown(1))
         {
@@ -92,17 +83,10 @@ public class SelectModel : MonoBehaviour
             isSelected = false;
 
             if (isCube)
-            {
                 GetComponent<BoxCollider>().enabled = true;
-            }
             else
-            {
                 GetComponent<SphereCollider>().enabled = true;
-            }
+
         }
-
-
-
     }
-
 }

@@ -100,53 +100,6 @@ public class UIManager : MonoBehaviour
 
     }
 
-    IEnumerator GetSavedData(string url)
-    {
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
-        {
-            // Request and wait for the desired page.
-            yield return webRequest.SendWebRequest();
-
-            if (webRequest.isNetworkError)
-            {
-                Debug.Log("Error: " + webRequest.error);
-            }
-            else
-            {
-                var data = webRequest.downloadHandler.text;
-
-                missionList = JsonUtility.FromJson<Missions>(data);
-
-                // run through and populate our dropdown with saved missions
-                foreach (Mission mission in missionList)
-                {
-                    Dropdown.OptionData newOption = new Dropdown.OptionData();
-                    newOption.text = mission.name;
-                    m_dropDownOptions.Add(newOption);
-                }
-
-                dropDown.options = m_dropDownOptions;
-
-
-
-                // // for each actor saved, instantiate the proper mesh and update its transform
-                foreach (SceneActor actor in missionList.missions[0].missionActors)
-                {
-                    GameObject newActor = Instantiate(spawn[actor.actorIndex]);
-                    newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
-                    newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
-                    newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
-                    spawnedObjects.Add(newActor);
-
-                }
-
-                // send weather data over to the weather manager
-                WeatherManager.SetWeatherData(missionList.missions[0].localMissionWeather);
-
-            }
-        }
-    }
-
     IEnumerator LoadAvailableMissions(string url)
     {
         using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
@@ -268,7 +221,10 @@ public class UIManager : MonoBehaviour
 
     public void SaveMission()
     {
-        thisMission.missionActors = savedObjects;
+        // pull the sceneactor data off of our gameobjects
+        foreach (GameObject actor in spawnedObjects)
+            thisMission.missionActors.Add(actor.GetComponent<SelectModel>().mySceneData);
+
         thisMission.localMissionWeather = WeatherManager.localWeather;
         // SaveLoad.Save(thisMission);
         HandleDirectionsText(savingData);
@@ -302,6 +258,12 @@ public class UIManager : MonoBehaviour
             newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
             newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
             newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
+            // make sure we turn on the collider so we can select and translate the actors
+            if (newActor.GetComponent<SelectModel>().isCube)
+                newActor.GetComponent<BoxCollider>().enabled = true;
+            else
+                newActor.GetComponent<SphereCollider>().enabled = true;
+
             spawnedObjects.Add(newActor);
 
         }
@@ -447,7 +409,7 @@ public class UIManager : MonoBehaviour
                 currentPlaceableObject = Instantiate(spawn[activeSpawnIndex]);
                 spawnedObjects.Add(currentPlaceableObject);
             }
-            mouseWheelRotation = 0;
+
         }
     }
 
@@ -467,6 +429,7 @@ public class UIManager : MonoBehaviour
     {
         // if we're scaling, clamp the values, otherwise leave it alone
         mouseWheelRotation += (setRotation) ? Input.mouseScrollDelta.y : Mathf.Clamp(Input.mouseScrollDelta.y, -2, 2);
+
 
         if (clickCount == 2)
         {

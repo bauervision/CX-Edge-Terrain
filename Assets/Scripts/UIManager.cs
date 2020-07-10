@@ -26,6 +26,7 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region PrivateMembers
+    private static SceneActor currentSceneActor;
     private int missionIndexToLoad = 0;
     private List<Dropdown.OptionData> m_dropDownOptions = new List<Dropdown.OptionData>();
     private int activeSpawnIndex;
@@ -277,7 +278,6 @@ public class UIManager : MonoBehaviour
     // triggered from setting the dropdown
     public void SetMissionToLoad(int missionIndex)
     {
-
         missionIndexToLoad = missionIndex - 1; //account for the "select mission" option
     }
 
@@ -321,6 +321,12 @@ public class UIManager : MonoBehaviour
         HandleDirectionsText($"Mission name saved as {newName}!");
     }
 
+    public static void SetSelected(SceneActor selectedActor)
+    {
+        currentSceneActor = selectedActor;
+        print(JsonUtility.ToJson(selectedActor));
+    }
+
     #endregion
 
 
@@ -333,8 +339,6 @@ public class UIManager : MonoBehaviour
         currentMission.text = "Unknown Mission Name";
         if (!initialLoad)
             HandleDirectionsText("Scene has been cleared of all data");
-
-
     }
 
     private void ClearBeforeLoad()
@@ -430,8 +434,6 @@ public class UIManager : MonoBehaviour
                 clickCount++;
             }
 
-
-
             if (currentPlaceableObject != null && clickCount > 2)
             {
                 Destroy(currentPlaceableObject);
@@ -442,10 +444,8 @@ public class UIManager : MonoBehaviour
             }
             else if (currentPlaceableObject == null)
             {
-
                 currentPlaceableObject = Instantiate(spawn[activeSpawnIndex]);
                 spawnedObjects.Add(currentPlaceableObject);
-
             }
             mouseWheelRotation = 0;
         }
@@ -502,15 +502,18 @@ public class UIManager : MonoBehaviour
                 currentPlaceableObject.GetComponent<SphereCollider>().enabled = true;
             }
 
+            int currentID = spawnedObjects.Count - 1;
             // Now set some data to retrieve from the model when hovering
 
             // now handle our Sceneactor class
             SceneActor newActor = new SceneActor();
             // set its transforms to currentPlaceableObject
-            newActor.SetPosition(isBlueForceObject, activeSpawnIndex, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, currentPlaceableObject.transform.localScale);
+            newActor.SetPosition(isBlueForceObject, currentID, activeSpawnIndex, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, currentPlaceableObject.transform.localScale);
             // and add it to the list
             savedObjects.Add(newActor);
 
+            // store this data on the actual gameobject to retrieve later
+            currentPlaceableObject.GetComponent<SelectModel>().SetMySceneData(newActor);
             currentPlaceableObject = null;
             clickCount = 0;
             steps = -1;

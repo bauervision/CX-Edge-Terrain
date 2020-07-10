@@ -239,7 +239,6 @@ namespace MissionWeather
             //now set the sky based on current time, or user specified time from the mission loaded
             float timeFloat = ConvertTimeToFloat(UnixTimeStampToDateTime(localWeather.current.dt));
 
-            Debug.Log("Set Sky Time" + UnixTimeStampToDateTime(localWeather.current.dt));
             SetTime(timeFloat);
             timeSlider.value = timeFloat;
         }

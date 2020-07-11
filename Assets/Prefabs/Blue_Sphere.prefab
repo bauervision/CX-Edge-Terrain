@@ -106,4 +106,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4cfa4d7b90b2a504a969f195c2c0115a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mySceneData:
+    isBlueForce: 0
+    id: 0
+    actorIndex: 0
+    positionX: 0
+    positionY: 0
+    positionZ: 0
+    rotationX: 0
+    rotationY: 0
+    rotationZ: 0
+    scaleX: 0
+    scaleY: 0
+    scaleZ: 0
   hoverColor: {r: 0.13794944, g: 0.9433962, b: 0.20744501, a: 1}
+  savedColor: {r: 1, g: 0.69057083, b: 0, a: 1}
+  isCube: 0

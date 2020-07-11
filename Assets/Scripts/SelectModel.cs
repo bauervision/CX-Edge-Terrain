@@ -4,9 +4,9 @@ using UnityEngine.EventSystems;
 public class SelectModel : MonoBehaviour
 {
     public SceneActor mySceneData;
-
     public static int myID;
     public Color hoverColor = new Color(255, 255, 255);
+    public Color savedColor = new Color(255, 255, 255);
 
     public bool isCube = false;
     private Color defaultColor;
@@ -18,6 +18,11 @@ public class SelectModel : MonoBehaviour
     public void SetMySceneData(SceneActor myData)
     {
         mySceneData = myData;
+    }
+
+    public void SetMyDescription(string value)
+    {
+        mySceneData.description = value;
     }
 
     private void UpdateMyPosition()

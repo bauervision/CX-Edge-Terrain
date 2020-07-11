@@ -18,14 +18,18 @@ public class UIManager : MonoBehaviour
     public GameObject LibraryPanel;
     public GameObject WeatherPanel;
     public GameObject MissionPanel;
+    public GameObject DeleteMissionButton;
     public Text ScalingText;
     public Text Directions;
     public Dropdown dropDown;
     public Text currentMission;
+    public Text currentElement;
+    public Text currentElementForce;
 
     #endregion
 
     #region PrivateMembers
+    private bool isSceneLoaded = false;
     private static SceneActor currentSceneActor;
     private int missionIndexToLoad = 0;
     private List<Dropdown.OptionData> m_dropDownOptions = new List<Dropdown.OptionData>();
@@ -59,6 +63,11 @@ public class UIManager : MonoBehaviour
 
     private string savingData = "Saving Mission Data...";
     private string savingDataSuccess = "Mission Saved Successfully!";
+    private string currentElementID;
+    private string currentForce; // ui field
+    private string currentElementDescription;
+    private string currentElementType;// ground, weapon, etc
+
     #endregion
 
 
@@ -73,7 +82,7 @@ public class UIManager : MonoBehaviour
         byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+        request.SetRequestHeader("Access-Control-Allow-Methods", "POST");
         request.SetRequestHeader("Content-Type", "application/json");
         request.SetRequestHeader("Access-Control-Allow-Headers", "*");
         request.SetRequestHeader("Access-Control-Allow-Origin", "https://cx-edge-terrain.web.app");
@@ -90,11 +99,11 @@ public class UIManager : MonoBehaviour
             MissionPanel.SetActive(false);
 
             //TODO: add this new mission to dropdown options
-            //         Dropdown.OptionData newOption = new Dropdown.OptionData();
-            // newOption.text = thisMission.name;
-            // m_dropDownOptions.Add(newOption);
-            // // and to the missionlist
-            // missionList.missions.Add(thisMission);
+            Dropdown.OptionData newOption = new Dropdown.OptionData();
+            newOption.text = thisMission.name;
+            m_dropDownOptions.Add(newOption);
+            // and to the missionlist
+            missionList.missions.Add(thisMission);
 
         }
 
@@ -179,6 +188,7 @@ public class UIManager : MonoBehaviour
         steps = 1;
         HideAllPanels(0);
         isBlueForceObject = true;
+        currentForce = "Ground\nForce";
     }
 
     public void Load_B_Sphere()
@@ -186,6 +196,8 @@ public class UIManager : MonoBehaviour
         steps = 1;
         HideAllPanels(1);
         isBlueForceObject = true;
+
+        currentForce = "Vehicle/\nWeapon";
     }
 
     public void Load_R_Cube()
@@ -193,12 +205,15 @@ public class UIManager : MonoBehaviour
         steps = 1;
         HideAllPanels(2);
         isBlueForceObject = false;
+        currentForce = "Ground\nForce";
+
     }
     public void Load_R_Sphere()
     {
         steps = 1;
         HideAllPanels(3);
         isBlueForceObject = false;
+        currentForce = "Vehicle/\nWeapon";
     }
 
     // called from the UI
@@ -216,6 +231,8 @@ public class UIManager : MonoBehaviour
         savedObjects.Clear();
         // create a new mission
         NewMission(false);
+        currentElementID = $"id:\nBlueForce:";
+        currentElementForce.text = "Force Type:";
     }
 
 
@@ -227,7 +244,7 @@ public class UIManager : MonoBehaviour
 
         thisMission.localMissionWeather = WeatherManager.localWeather;
         // SaveLoad.Save(thisMission);
-        HandleDirectionsText(savingData);
+        Directions.text = savingData;
         StartCoroutine(PostSavedData());
     }
 
@@ -274,6 +291,7 @@ public class UIManager : MonoBehaviour
         HandleDirectionsText($"{missionList.missions[missionIndexToLoad].name} loaded successfully!");
         // hide the mission panel once we load so user can see the whole scene view
         MissionPanel.SetActive(false);
+        isSceneLoaded = true;
     }
 
     public void SetMissionName(string newName)
@@ -289,6 +307,12 @@ public class UIManager : MonoBehaviour
         print(JsonUtility.ToJson(selectedActor));
     }
 
+
+    public void SetDescription(string description)
+    {
+        currentElementDescription = description;
+    }
+
     #endregion
 
 
@@ -298,6 +322,7 @@ public class UIManager : MonoBehaviour
     private void NewMission(bool initialLoad)
     {
         thisMission = new Mission();
+        isSceneLoaded = false;
         currentMission.text = "Unknown Mission Name";
         if (!initialLoad)
             HandleDirectionsText("Scene has been cleared of all data");
@@ -329,7 +354,7 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         // we need to fetch the available missions
-        HandleDirectionsText(loadingData);
+        Directions.text = loadingData;
         StartCoroutine(LoadAvailableMissions("https://us-central1-octo-ar-demo.cloudfunctions.net/getSavedMissions"));
 
         NewMission(true);
@@ -338,6 +363,7 @@ public class UIManager : MonoBehaviour
         LibraryPanel.SetActive(false);
         WeatherPanel.SetActive(false);
         MissionPanel.SetActive(false);
+        DeleteMissionButton.SetActive(false);
 
 
     }
@@ -383,7 +409,13 @@ public class UIManager : MonoBehaviour
         }
         //}
 
+        if (isSceneLoaded)
+        {
+            DeleteMissionButton.SetActive(true);
+        }
 
+        currentElement.text = currentElementID;
+        currentElementForce.text = currentElementType;
     }
 
     private void HandleNewObjectHotkey()
@@ -407,6 +439,8 @@ public class UIManager : MonoBehaviour
             else if (currentPlaceableObject == null)
             {
                 currentPlaceableObject = Instantiate(spawn[activeSpawnIndex]);
+                currentElementID = $"id:{spawnedObjects.Count}\nBlueForce:{isBlueForceObject}";
+                currentElementType = $"Force Type:\n{currentForce}";
                 spawnedObjects.Add(currentPlaceableObject);
             }
 

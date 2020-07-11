@@ -9,6 +9,8 @@ public class SceneActor
     public int actorIndex;
     public float positionX, positionY, positionZ, rotationX, rotationY, rotationZ, scaleX, scaleY, scaleZ;
 
+    public string description;
+
 
     //called when the user finalizes the model
     public void SetPosition(bool isBlue, int id, int index, Vector3 pos, Vector3 rot, Vector3 scaling)
@@ -25,6 +27,7 @@ public class SceneActor
         this.scaleX = (float)System.Math.Round(scaling.x, 2);
         this.scaleY = (float)System.Math.Round(scaling.y, 2);
         this.scaleZ = (float)System.Math.Round(scaling.z, 2);
+        this.description = "";
     }
 
 

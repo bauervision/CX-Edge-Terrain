@@ -5,6 +5,7 @@ using System.Collections;
 public class SceneActor
 {
     public bool isBlueForce;
+    public string forceType;
     public int id;
     public int actorIndex;
     public float positionX, positionY, positionZ, rotationX, rotationY, rotationZ, scaleX, scaleY, scaleZ;
@@ -13,9 +14,8 @@ public class SceneActor
 
 
     //called when the user finalizes the model
-    public void SetPosition(bool isBlue, int id, int index, Vector3 pos, Vector3 rot, Vector3 scaling)
+    public void SetPosition(int id, int index, Vector3 pos, Vector3 rot, Vector3 scaling)
     {
-        this.isBlueForce = isBlue;// good or bad guy?
         this.actorIndex = index;// which index is the mesh we chose?
         this.id = id; // specific id for this object index of when it was spawned in the scene.
         this.positionX = (float)System.Math.Round(pos.x, 2);

@@ -7,8 +7,6 @@ public class SelectModel : MonoBehaviour
     public static int myID;
     public Color hoverColor = new Color(255, 255, 255);
     public Color savedColor = new Color(255, 255, 255);
-
-    public bool isCube = false;
     private Color defaultColor;
 
 
@@ -42,6 +40,7 @@ public class SelectModel : MonoBehaviour
     private void OnMouseOver()
     {
         GetComponent<MeshRenderer>().material.color = hoverColor;
+        UIManager.SetSelected(mySceneData);
     }
 
     private void OnMouseExit()
@@ -50,6 +49,7 @@ public class SelectModel : MonoBehaviour
         {
             GetComponent<MeshRenderer>().material.color = defaultColor;
         }
+        UIManager.SetSelected(null);
     }
 
 
@@ -59,11 +59,8 @@ public class SelectModel : MonoBehaviour
     {
         isSelected = !isSelected;
         UIManager.SetSelected(mySceneData);
+        GetComponent<BoxCollider>().enabled = false;
 
-        if (isCube)
-            GetComponent<BoxCollider>().enabled = false;
-        else
-            GetComponent<SphereCollider>().enabled = false;
     }
 
     private void MoveToMouse()
@@ -86,12 +83,7 @@ public class SelectModel : MonoBehaviour
         {
             UpdateMyPosition();
             isSelected = false;
-
-            if (isCube)
-                GetComponent<BoxCollider>().enabled = true;
-            else
-                GetComponent<SphereCollider>().enabled = true;
-
+            GetComponent<BoxCollider>().enabled = true;
         }
     }
 }

@@ -41,7 +41,6 @@ public class UIManager : MonoBehaviour
 
     private List<GameObject> spawnedObjects = new List<GameObject>();
     private List<SceneActor> savedObjects = new List<SceneActor>();
-    private bool setRotation = false;
 
     [SerializeField]
     private KeyCode newObjectHotkey = KeyCode.A;
@@ -183,38 +182,69 @@ public class UIManager : MonoBehaviour
             WeatherPanel.SetActive(false);
     }
 
-    public void Load_B_Cube()
+    public void Load_Blu_Troops()
     {
         steps = 1;
         HideAllPanels(0);
         isBlueForceObject = true;
-        currentForce = "Ground\nForce";
+        currentForce = "Troops";
     }
 
-    public void Load_B_Sphere()
+    public void Load_Blu_Armor()
     {
         steps = 1;
         HideAllPanels(1);
         isBlueForceObject = true;
-
-        currentForce = "Vehicle/\nWeapon";
+        currentForce = "Armored";
     }
 
-    public void Load_R_Cube()
+    public void Load_RallyPoint()
     {
         steps = 1;
         HideAllPanels(2);
         isBlueForceObject = false;
-        currentForce = "Ground\nForce";
-
+        currentForce = "Rally Point";
     }
-    public void Load_R_Sphere()
+
+    public void Load_Blu_Arrow()
     {
         steps = 1;
         HideAllPanels(3);
-        isBlueForceObject = false;
-        currentForce = "Vehicle/\nWeapon";
+        isBlueForceObject = true;
+        currentForce = "Direction";
     }
+
+    public void Load_Objective()
+    {
+        steps = 1;
+        HideAllPanels(4);
+        isBlueForceObject = false;
+        currentForce = "Objective";
+    }
+    public void Load_Red_Troops()
+    {
+        steps = 1;
+        HideAllPanels(5);
+        isBlueForceObject = false;
+        currentForce = "Troops";
+    }
+
+    public void Load_Red_Armor()
+    {
+        steps = 1;
+        HideAllPanels(6);
+        isBlueForceObject = false;
+        currentForce = "Armored";
+    }
+
+    public void Load_Red_Arrow()
+    {
+        steps = 1;
+        HideAllPanels(7);
+        isBlueForceObject = false;
+        currentForce = "Direction";
+    }
+
 
     // called from the UI
     public void Clear()
@@ -231,8 +261,8 @@ public class UIManager : MonoBehaviour
         savedObjects.Clear();
         // create a new mission
         NewMission(false);
-        currentElementID = $"id:\nBlueForce:";
-        currentElementForce.text = "Force Type:";
+        currentElementID = $"id:";
+        currentElementForce.text = "Element Type:";
     }
 
 
@@ -276,10 +306,7 @@ public class UIManager : MonoBehaviour
             newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
             newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
             // make sure we turn on the collider so we can select and translate the actors
-            if (newActor.GetComponent<SelectModel>().isCube)
-                newActor.GetComponent<BoxCollider>().enabled = true;
-            else
-                newActor.GetComponent<SphereCollider>().enabled = true;
+            newActor.GetComponent<BoxCollider>().enabled = true;
 
             spawnedObjects.Add(newActor);
 
@@ -304,7 +331,6 @@ public class UIManager : MonoBehaviour
     public static void SetSelected(SceneActor selectedActor)
     {
         currentSceneActor = selectedActor;
-        print(JsonUtility.ToJson(selectedActor));
     }
 
 
@@ -364,8 +390,6 @@ public class UIManager : MonoBehaviour
         WeatherPanel.SetActive(false);
         MissionPanel.SetActive(false);
         DeleteMissionButton.SetActive(false);
-
-
     }
 
 
@@ -384,6 +408,33 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void HandleUIUpdate()
+    {
+        string isBlue;
+
+
+        if (currentSceneActor != null)
+        {
+            isBlue = (isBlueForceObject || (currentSceneActor != null && currentSceneActor.isBlueForce)) ? "Blue Force" : "Red Force";
+
+            currentElement.text = $"id:{currentSceneActor.id}\n{currentSceneActor.isBlueForce}";
+            currentElementForce.text = $"Element Type:\n{currentSceneActor.forceType}";
+
+        }
+        else if (currentPlaceableObject != null)
+        {
+            isBlue = currentPlaceableObject.GetComponent<SelectModel>().mySceneData.isBlueForce ? "Blue Force" : "Red Force";
+            currentElement.text = $"id:{spawnedObjects.Count - 1}\n{isBlue}";
+            currentElementForce.text = $"Element Type:\n{currentPlaceableObject.GetComponent<SelectModel>().mySceneData.forceType}";
+
+        }
+        else
+        {
+            currentElement.text = "id:\n";
+            currentElementForce.text = "Element Type:\n";
+        }
+    }
+
 
     private void Update()
     {
@@ -395,6 +446,8 @@ public class UIManager : MonoBehaviour
             RotateFromMouseWheel();
             ReleaseIfClicked();
         }
+
+        HandleUIUpdate();
 
         // TODO: need another condition for the tutorial
         // if (LibraryPanel.activeInHierarchy == true)
@@ -414,8 +467,7 @@ public class UIManager : MonoBehaviour
             DeleteMissionButton.SetActive(true);
         }
 
-        currentElement.text = currentElementID;
-        currentElementForce.text = currentElementType;
+
     }
 
     private void HandleNewObjectHotkey()
@@ -439,8 +491,6 @@ public class UIManager : MonoBehaviour
             else if (currentPlaceableObject == null)
             {
                 currentPlaceableObject = Instantiate(spawn[activeSpawnIndex]);
-                currentElementID = $"id:{spawnedObjects.Count}\nBlueForce:{isBlueForceObject}";
-                currentElementType = $"Force Type:\n{currentForce}";
                 spawnedObjects.Add(currentPlaceableObject);
             }
 
@@ -462,22 +512,10 @@ public class UIManager : MonoBehaviour
     private void RotateFromMouseWheel()
     {
         // if we're scaling, clamp the values, otherwise leave it alone
-        mouseWheelRotation += (setRotation) ? Input.mouseScrollDelta.y : Mathf.Clamp(Input.mouseScrollDelta.y, -2, 2);
-
-
-        if (clickCount == 2)
-        {
-            steps = 3;
-            ScalingText.text = $"Rotation: {mouseWheelRotation}";
-            currentPlaceableObject.transform.Rotate(Vector3.up, mouseWheelRotation * 10f);
-        }
-        else
-        {
-            steps = 2;
-            ScalingText.text = $"Scale: {mouseWheelRotation}";
-            currentPlaceableObject.transform.localScale += Vector3.one * (mouseWheelRotation * 0.05f);
-        }
-
+        mouseWheelRotation += Input.mouseScrollDelta.y;
+        steps = 3;
+        ScalingText.text = $"Rotation: {mouseWheelRotation}";
+        currentPlaceableObject.transform.Rotate(Vector3.up, mouseWheelRotation * 10f);
     }
 
     /*
@@ -488,24 +526,16 @@ public class UIManager : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             // we need to turn on the collider once we place the gameobject
-            // if index is 0 or 2 then its a cube model
-            if (activeSpawnIndex == 0 || activeSpawnIndex == 2)
-            {
-                // so enable the box collider
-                currentPlaceableObject.GetComponent<BoxCollider>().enabled = true;
-            }
-            else
-            {
-                currentPlaceableObject.GetComponent<SphereCollider>().enabled = true;
-            }
+            currentPlaceableObject.GetComponent<BoxCollider>().enabled = true;
 
             int currentID = spawnedObjects.Count - 1;
             // Now set some data to retrieve from the model when hovering
 
             // now handle our Sceneactor class
             SceneActor newActor = new SceneActor();
+            newActor.forceType = currentForce;
             // set its transforms to currentPlaceableObject
-            newActor.SetPosition(isBlueForceObject, currentID, activeSpawnIndex, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, currentPlaceableObject.transform.localScale);
+            newActor.SetPosition(currentID, activeSpawnIndex, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, currentPlaceableObject.transform.localScale);
             // and add it to the list
             savedObjects.Add(newActor);
 

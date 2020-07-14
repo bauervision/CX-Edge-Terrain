@@ -38,7 +38,7 @@ namespace MissionWeather
         public string temp;
         public string humidity;
         public float clouds;
-        public string visibility;
+        public float visibility;
         public float wind_speed;
         public float wind_deg;
         public List<Forecast> weather;
@@ -49,7 +49,7 @@ namespace MissionWeather
             this.temp = "NA";
             this.humidity = "NA";
             this.clouds = 0.0f;
-            this.visibility = "NA";
+            this.visibility = 0.0f;
             this.wind_deg = 0.0f;
             this.wind_speed = 0.0f;
             this.weather = new List<Forecast>();
@@ -90,8 +90,8 @@ namespace MissionWeather
         #endregion
 
         #region PrivateMembers
-        private float userLat = 43.148107f;
-        private float userLon = -109.702438f;
+        private float userLat = 36.695620f;// my house
+        private float userLon = -76.198450f;
 
         #endregion
 
@@ -226,10 +226,12 @@ namespace MissionWeather
 
         private void SetSky()
         {
+            float visibilityToMiles = localWeather.current.visibility / 1609;
+
             GetComponent<TOD_Sky>().World.Latitude = localWeather.lat;
             GetComponent<TOD_Sky>().World.Longitude = localWeather.lon;
             GetComponent<TOD_Sky>().Clouds.Coverage = localWeather.current.clouds / 100;
-            GetComponent<TOD_Sky>().Atmosphere.Fogginess = localWeather.current.clouds / 100;
+            GetComponent<TOD_Sky>().Atmosphere.Fogginess = visibilityToMiles / 100;// convert to percentage
             GetComponent<TOD_Sky>().Cycle.Year = System.DateTime.Now.Year;
             GetComponent<TOD_Sky>().Cycle.Month = System.DateTime.Now.Month;
             GetComponent<TOD_Sky>().Cycle.Day = System.DateTime.Now.Day;

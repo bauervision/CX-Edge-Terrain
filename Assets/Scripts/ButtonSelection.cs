@@ -1,9 +1,11 @@
 using UnityEngine;
-using System.Collections.Generic;
 
-public class ButtonSelection : MonoBehaviour {
+public class ButtonSelection : MonoBehaviour
+{
     public GameObject activePanel;
-    public void ShowMyActivePanel() {    
+    public void ShowMyActivePanel()
+    {
         activePanel.SetActive(true);
     }
+
 }

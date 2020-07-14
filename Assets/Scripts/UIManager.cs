@@ -19,7 +19,6 @@ public class UIManager : MonoBehaviour
     public GameObject WeatherPanel;
     public GameObject MissionPanel;
     public GameObject DeleteMissionButton;
-    public Text ScalingText;
     public Text Directions;
     public Dropdown dropDown;
     public Text currentMission;
@@ -258,7 +257,7 @@ public class UIManager : MonoBehaviour
         }
         // clear the lists as well
         spawnedObjects.Clear();
-        savedObjects.Clear();
+        // savedObjects.Clear();
         // create a new mission
         NewMission(false);
         currentElementID = $"id:";
@@ -304,9 +303,10 @@ public class UIManager : MonoBehaviour
             GameObject newActor = Instantiate(spawn[actor.actorIndex]);
             newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
             newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
-            newActor.transform.localScale = new Vector3(actor.scaleX, actor.scaleY, actor.scaleZ);
             // make sure we turn on the collider so we can select and translate the actors
             newActor.GetComponent<BoxCollider>().enabled = true;
+            // push the saved data onto the game object
+            newActor.GetComponent<SelectModel>().SetMySceneData(actor);
 
             spawnedObjects.Add(newActor);
 
@@ -485,7 +485,7 @@ public class UIManager : MonoBehaviour
                 Destroy(currentPlaceableObject);
                 clickCount = 0;
                 steps = -1;
-                ScalingText.text = $"Rotation: {0}";
+
 
             }
             else if (currentPlaceableObject == null)
@@ -514,7 +514,6 @@ public class UIManager : MonoBehaviour
         // if we're scaling, clamp the values, otherwise leave it alone
         mouseWheelRotation += Input.mouseScrollDelta.y;
         steps = 3;
-        ScalingText.text = $"Rotation: {mouseWheelRotation}";
         currentPlaceableObject.transform.Rotate(Vector3.up, mouseWheelRotation * 10f);
     }
 
@@ -535,7 +534,7 @@ public class UIManager : MonoBehaviour
             SceneActor newActor = new SceneActor();
             newActor.forceType = currentForce;
             // set its transforms to currentPlaceableObject
-            newActor.SetPosition(currentID, activeSpawnIndex, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, currentPlaceableObject.transform.localScale);
+            newActor.SetPosition(currentID, activeSpawnIndex, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles);
             // and add it to the list
             savedObjects.Add(newActor);
 

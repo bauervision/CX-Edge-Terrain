@@ -46,7 +46,7 @@ public class UIManager : MonoBehaviour
     Missions missionList;
     Mission thisMission;
 
-    private List<GameObject> spawnedObjects = new List<GameObject>();
+    public static List<GameObject> spawnedObjects = new List<GameObject>();
     private List<SceneActor> savedObjects = new List<SceneActor>();
 
     [SerializeField]
@@ -80,6 +80,37 @@ public class UIManager : MonoBehaviour
 
     #region IEnumerators
 
+    IEnumerator DeleteMissionData()
+    {
+        string data = JsonUtility.ToJson(thisMission);
+
+        string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/deleteMission";
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Access-Control-Allow-Methods", "POST");
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Access-Control-Allow-Headers", "*");
+        request.SetRequestHeader("Access-Control-Allow-Origin", "https://cx-edge-terrain.web.app");
+
+        yield return request.SendWebRequest();
+        if (request.isNetworkError)
+        {
+            Debug.Log("Error: " + request.error);
+        }
+        else
+        {
+            Debug.Log("Status Code: " + request.responseCode);
+            HandleDirectionsText("Mission deleted successfully!");
+            MissionPanel.SetActive(false);
+
+            MissionButtonText.text = "Mission Data";
+        }
+
+    }
+
+
     IEnumerator PostSavedData()
     {
         string data = JsonUtility.ToJson(thisMission);
@@ -105,12 +136,45 @@ public class UIManager : MonoBehaviour
             HandleDirectionsText(savingDataSuccess);
             MissionPanel.SetActive(false);
 
-            //TODO: add this new mission to dropdown options
+            // add this new mission to dropdown options
             Dropdown.OptionData newOption = new Dropdown.OptionData();
             newOption.text = thisMission.name;
             m_dropDownOptions.Add(newOption);
             // and to the missionlist
             missionList.missions.Add(thisMission);
+
+            MissionButtonText.text = "Mission Data";
+
+        }
+
+    }
+
+    IEnumerator PostUpdatedData()
+    {
+        string data = JsonUtility.ToJson(thisMission);
+
+        string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/updateMission";
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Access-Control-Allow-Methods", "POST");
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Access-Control-Allow-Headers", "*");
+        request.SetRequestHeader("Access-Control-Allow-Origin", "https://cx-edge-terrain.web.app");
+
+        yield return request.SendWebRequest();
+        if (request.isNetworkError)
+        {
+            Debug.Log("Error: " + request.error);
+        }
+        else
+        {
+            Debug.Log("Status Code: " + request.responseCode);
+            HandleDirectionsText(savingDataSuccess);
+            MissionPanel.SetActive(false);
+
+            MissionButtonText.text = "Mission Data";
 
         }
 
@@ -274,6 +338,24 @@ public class UIManager : MonoBehaviour
         currentElementForce.text = "Element Type:";
     }
 
+    public void DeleteMission()
+    {
+        // clear out the current mission and create a new empty one
+        NewMission(false);
+        thisMission.missionIndex = missionIndexToLoad;// set which index to update in DB
+        Directions.text = "Deleting current mission...";
+        MissionButtonText.text = "DELETING...";
+        StartCoroutine(DeleteMissionData());
+    }
+
+    public static void DeleteThisActor(int index)
+    {
+        print("Delete index" + index + " of spawnedObjects");
+        print("Before Delete " + spawnedObjects.Count);
+        Destroy(spawnedObjects[index].transform.gameObject);
+        spawnedObjects.RemoveAt(index);
+        print("After Delete " + spawnedObjects.Count);
+    }
 
     public void SaveMission()
     {
@@ -281,8 +363,22 @@ public class UIManager : MonoBehaviour
         foreach (GameObject actor in spawnedObjects)
             thisMission.missionActors.Add(actor.GetComponent<SelectModel>().mySceneData);
 
+        print(thisMission.missionActors.Count);
         thisMission.localMissionWeather = WeatherManager.localWeather;
-        // SaveLoad.Save(thisMission);
+        thisMission.missionIndex = missionIndexToLoad;//how we know which index to update in DB
+        Directions.text = savingData;
+        MissionButtonText.text = "UPDATING...";
+        StartCoroutine(PostUpdatedData());
+    }
+
+    public void SaveNewMission()
+    {
+        // pull the sceneactor data off of our gameobjects
+        foreach (GameObject actor in spawnedObjects)
+            thisMission.missionActors.Add(actor.GetComponent<SelectModel>().mySceneData);
+
+        thisMission.localMissionWeather = WeatherManager.localWeather;
+        thisMission.missionIndex = missionIndexToLoad;
         Directions.text = savingData;
         MissionButtonText.text = "SAVING...";
         StartCoroutine(PostSavedData());

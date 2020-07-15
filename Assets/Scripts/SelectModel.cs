@@ -92,11 +92,24 @@ public class SelectModel : MonoBehaviour
         }
     }
 
+    private GameObject DeleteMe()
+    {
+        if (Input.GetKeyDown(KeyCode.Delete))
+        {
+            UIManager.DeleteThisActor(mySceneData.id);
+            //Destroy(transform.gameObject);
+            return null;
+        }
+        return transform.gameObject;
+    }
+
     private void Update()
     {
 
         if (isSelected)
         {
+            DeleteMe();
+
             MoveToMouse();
             mouseWheelRotation += Input.mouseScrollDelta.y;
             transform.Rotate(Vector3.up, mySceneData.rotationY + (mouseWheelRotation * 10f));

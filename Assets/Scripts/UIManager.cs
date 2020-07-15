@@ -19,15 +19,23 @@ public class UIManager : MonoBehaviour
     public GameObject WeatherPanel;
     public GameObject MissionPanel;
     public GameObject DeleteMissionButton;
+    public GameObject NewMissionPanel;
+    public GameObject SaveMissionPanel;
     public Text Directions;
     public Dropdown dropDown;
     public Text currentMission;
     public Text currentElement;
     public Text currentElementForce;
+    public Text currentMode;
+    public GameObject helpGuide;
+    public Text MissionButtonText;
+
+    public static bool isEditing = false;
 
     #endregion
 
     #region PrivateMembers
+
     private bool isSceneLoaded = false;
     private static SceneActor currentSceneActor;
     private int missionIndexToLoad = 0;
@@ -65,6 +73,7 @@ public class UIManager : MonoBehaviour
     private string currentForce; // ui field
     private string currentElementDescription;
     private string currentElementType;// ground, weapon, etc
+
 
     #endregion
 
@@ -139,6 +148,7 @@ public class UIManager : MonoBehaviour
 
                 dropDown.options = m_dropDownOptions;
                 HandleDirectionsText($"All {missionList.missions.Count} missions successfully loaded!");
+                MissionButtonText.text = "Mission Data";
             }
         }
     }
@@ -201,7 +211,7 @@ public class UIManager : MonoBehaviour
     {
         steps = 1;
         HideAllPanels(2);
-        isBlueForceObject = false;
+        isBlueForceObject = true;
         currentForce = "Rally Point";
     }
 
@@ -274,6 +284,7 @@ public class UIManager : MonoBehaviour
         thisMission.localMissionWeather = WeatherManager.localWeather;
         // SaveLoad.Save(thisMission);
         Directions.text = savingData;
+        MissionButtonText.text = "SAVING...";
         StartCoroutine(PostSavedData());
     }
 
@@ -306,7 +317,7 @@ public class UIManager : MonoBehaviour
             // make sure we turn on the collider so we can select and translate the actors
             newActor.GetComponent<BoxCollider>().enabled = true;
             // push the saved data onto the game object
-            newActor.GetComponent<SelectModel>().SetMySceneData(actor);
+            SelectModel.SetMySceneData(actor);
 
             spawnedObjects.Add(newActor);
 
@@ -316,8 +327,9 @@ public class UIManager : MonoBehaviour
         WeatherManager.SetWeatherData(missionList.missions[missionIndexToLoad].localMissionWeather);
         currentMission.text = missionList.missions[missionIndexToLoad].name;
         HandleDirectionsText($"{missionList.missions[missionIndexToLoad].name} loaded successfully!");
-        // hide the mission panel once we load so user can see the whole scene view
+        // hide the mission and library panel once we load so user can see the whole scene view
         MissionPanel.SetActive(false);
+        LibraryPanel.SetActive(false);
         isSceneLoaded = true;
     }
 
@@ -337,6 +349,11 @@ public class UIManager : MonoBehaviour
     public void SetDescription(string description)
     {
         currentElementDescription = description;
+    }
+
+    public void ShowHelp(bool value)
+    {
+        helpGuide.SetActive(value);
     }
 
     #endregion
@@ -381,6 +398,7 @@ public class UIManager : MonoBehaviour
     {
         // we need to fetch the available missions
         Directions.text = loadingData;
+        MissionButtonText.text = "LOADING...";
         StartCoroutine(LoadAvailableMissions("https://us-central1-octo-ar-demo.cloudfunctions.net/getSavedMissions"));
 
         NewMission(true);
@@ -390,6 +408,7 @@ public class UIManager : MonoBehaviour
         WeatherPanel.SetActive(false);
         MissionPanel.SetActive(false);
         DeleteMissionButton.SetActive(false);
+        helpGuide.SetActive(false);
     }
 
 
@@ -433,6 +452,11 @@ public class UIManager : MonoBehaviour
             currentElement.text = "id:\n";
             currentElementForce.text = "Element Type:\n";
         }
+
+        // if we have a mission loaded, we're in edit mode
+        currentMode.text = isSceneLoaded ? "Edit\nMission" : "Create New\nMission";
+
+
     }
 
 
@@ -449,23 +473,39 @@ public class UIManager : MonoBehaviour
 
         HandleUIUpdate();
 
-        // TODO: need another condition for the tutorial
-        // if (LibraryPanel.activeInHierarchy == true)
-        // {
-        switch (steps)
+        // if we are creating a new mission, shows steps for creation
+        if (!isSceneLoaded)
         {
-            case 0: Directions.text = library1; break;
-            case 1: Directions.text = library2; break;
-            case 2: Directions.text = library3; break;
-            case 3: Directions.text = library4; break;
-            default: break;
+            DeleteMissionButton.SetActive(false);
+            SaveMissionPanel.SetActive(false);
+            NewMissionPanel.SetActive(true);
+            switch (steps)
+            {
+                case 0: Directions.text = library1; break;
+                case 1: Directions.text = library2; break;
+                case 2: Directions.text = library3; break;
+                case 3: Directions.text = library4; break;
+                default: break;
+            }
         }
-        //}
-
-        if (isSceneLoaded)
+        else
         {
             DeleteMissionButton.SetActive(true);
+            SaveMissionPanel.SetActive(true);
+            NewMissionPanel.SetActive(false);
+
+            // we are editing a mission
+            if (!isEditing)
+            {
+                Directions.text = "Mouse over a placed model to view it's details.\n Left click it to select and re-position it.";
+            }
+            else
+            {
+                Directions.text = "Right click to end re-positioning and set its new position on the map.";
+            }
         }
+
+
 
 
     }
@@ -534,12 +574,12 @@ public class UIManager : MonoBehaviour
             SceneActor newActor = new SceneActor();
             newActor.forceType = currentForce;
             // set its transforms to currentPlaceableObject
-            newActor.SetPosition(currentID, activeSpawnIndex, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles);
+            newActor.SetPosition(currentID, activeSpawnIndex, isBlueForceObject, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles);
             // and add it to the list
             savedObjects.Add(newActor);
 
             // store this data on the actual gameobject to retrieve later
-            currentPlaceableObject.GetComponent<SelectModel>().SetMySceneData(newActor);
+            SelectModel.SetMySceneData(newActor);
             currentPlaceableObject = null;
             clickCount = 0;
             steps = -1;

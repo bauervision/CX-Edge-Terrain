@@ -42,7 +42,7 @@ public class Tooltip : MonoBehaviour
 
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         Vector2 localPoint;
 

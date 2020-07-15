@@ -14,8 +14,9 @@ public class SceneActor
 
 
     //called when the user finalizes the model
-    public void SetPosition(int id, int index, Vector3 pos, Vector3 rot)
+    public void SetPosition(int id, int index, bool isBlue, Vector3 pos, Vector3 rot)
     {
+        this.isBlueForce = isBlue;
         this.actorIndex = index;// which index is the mesh we chose?
         this.id = id; // specific id for this object index of when it was spawned in the scene.
         this.positionX = (float)System.Math.Round(pos.x, 2);

@@ -160,14 +160,13 @@ public class UIManager : MonoBehaviour
                     // and to the missionlist
                     missionList.missions.Add(thisMission);
                     MissionButtonText.text = "SAVED!";
+                    dropDown.value = m_dropDownOptions.Count;// reset dropdown to initial
                 }
                 else
                 {
                     MissionButtonText.text = "UPDATED!";
                 }
 
-
-                dropDown.value = 0;// reset dropdown to initial
                 StartCoroutine(Countdown(MissionButtonText, 2, "Mission Data")); ;
             }
             else

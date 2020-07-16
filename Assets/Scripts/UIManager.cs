@@ -82,13 +82,8 @@ public class UIManager : MonoBehaviour
 
     IEnumerator DeleteMissionData()
     {
-        string data = JsonUtility.ToJson(thisMission);
-
-        string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/deleteMission?name{thisMission.name}";
+        string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/deleteMission?name={missionList.missions[missionIndexToLoad].name}";
         var request = new UnityWebRequest(url, "DELETE");
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Access-Control-Allow-Methods", "DELETE");
         request.SetRequestHeader("Access-Control-Allow-Headers", "*");
         request.SetRequestHeader("Access-Control-Allow-Origin", "https://cx-edge-terrain.web.app");
@@ -106,6 +101,11 @@ public class UIManager : MonoBehaviour
                 HandleDirectionsText("Mission deleted successfully!");
                 MissionPanel.SetActive(false);
                 MissionButtonText.text = "Mission Data";
+                // clear the scene
+                NewMission(false);
+                //remove the loaded mission
+                missionList.missions.RemoveAt(missionIndexToLoad);
+                m_dropDownOptions.RemoveAt(missionIndexToLoad + 1);//account for the "select Mission..." index
             }
             else
             {

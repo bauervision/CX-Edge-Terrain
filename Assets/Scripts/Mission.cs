@@ -28,7 +28,6 @@ public class Missions : IEnumerable<Mission>
 [System.Serializable]
 public class Mission
 {
-    public int missionIndex;
     public string name;
     //set all dynamic actors that could be placed for this mission
     public List<SceneActor> missionActors;
@@ -38,7 +37,6 @@ public class Mission
 
     public Mission()
     {
-        this.missionIndex = -1;
         this.name = "MyFirstMission";
         this.missionActors = new List<SceneActor>();
         this.localMissionWeather = new WeatherData();

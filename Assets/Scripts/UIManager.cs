@@ -100,12 +100,17 @@ public class UIManager : MonoBehaviour
             {
                 HandleDirectionsText("Mission deleted successfully!");
                 MissionPanel.SetActive(false);
-                MissionButtonText.text = "Mission Data";
+
                 // clear the scene
                 NewMission(false);
                 //remove the loaded mission
                 missionList.missions.RemoveAt(missionIndexToLoad);
                 m_dropDownOptions.RemoveAt(missionIndexToLoad + 1);//account for the "select Mission..." index
+                Clear();
+                dropDown.value = 0;// reset dropdown to initial
+                MissionButtonText.text = "DELETED";
+                StartCoroutine(Countdown(MissionButtonText, 3, "Mission Data")); ;
+
             }
             else
             {
@@ -118,9 +123,8 @@ public class UIManager : MonoBehaviour
 
     }
 
-
     // PostSavedData is used to both create new missions and will also update them
-    IEnumerator PostSavedData()
+    IEnumerator PostSavedData(bool isNewMission)
     {
         string data = JsonUtility.ToJson(thisMission);
 
@@ -142,20 +146,39 @@ public class UIManager : MonoBehaviour
         else
         {
             Debug.Log("Status Code: " + request.responseCode);
-            HandleDirectionsText(savingDataSuccess);
-            MissionPanel.SetActive(false);
+            if (request.responseCode == 200)
+            {
+                HandleDirectionsText(savingDataSuccess);
+                MissionPanel.SetActive(false);
 
-            // add this new mission to dropdown options
-            Dropdown.OptionData newOption = new Dropdown.OptionData();
-            newOption.text = thisMission.name;
-            m_dropDownOptions.Add(newOption);
-            // and to the missionlist
-            missionList.missions.Add(thisMission);
-            MissionButtonText.text = "Mission Data";
+                if (isNewMission)
+                {
+                    // add this new mission to dropdown options
+                    Dropdown.OptionData newOption = new Dropdown.OptionData();
+                    newOption.text = thisMission.name;
+                    m_dropDownOptions.Add(newOption);
+                    // and to the missionlist
+                    missionList.missions.Add(thisMission);
+                    MissionButtonText.text = "SAVED!";
+                }
+                else
+                {
+                    MissionButtonText.text = "UPDATED!";
+                }
+
+
+                dropDown.value = 0;// reset dropdown to initial
+                StartCoroutine(Countdown(MissionButtonText, 2, "Mission Data")); ;
+            }
+            else
+            {
+                HandleDirectionsText("There was an error saving the mission");
+                MissionButtonText.text = "ERROR!";
+                StartCoroutine(Countdown(MissionButtonText, 3, "Mission Data"));
+            }
+
         }
     }
-
-
 
     IEnumerator LoadAvailableMissions(string url)
     {
@@ -189,12 +212,13 @@ public class UIManager : MonoBehaviour
 
                 dropDown.options = m_dropDownOptions;
                 HandleDirectionsText($"All {missionList.missions.Count} missions successfully loaded!");
-                MissionButtonText.text = "Mission Data";
+                MissionButtonText.text = "LOADED";
+                StartCoroutine(Countdown(MissionButtonText, 2, "Mission Data"));
             }
         }
     }
 
-    IEnumerator Countdown(int seconds)
+    IEnumerator Countdown(Text textElement, int seconds, string newString)
     {
         int counter = seconds;
         while (counter > 0)
@@ -202,7 +226,7 @@ public class UIManager : MonoBehaviour
             yield return new WaitForSeconds(1);
             counter--;
         }
-        Directions.text = "";
+        textElement.text = newString;
     }
 
     #endregion
@@ -319,7 +343,6 @@ public class UIManager : MonoBehaviour
     {
         // clear out the current mission and create a new empty one
         NewMission(false);
-        thisMission.missionIndex = missionIndexToLoad;// set which index to update in DB
         Directions.text = "Deleting current mission...";
         MissionButtonText.text = "DELETING...";
         StartCoroutine(DeleteMissionData());
@@ -327,25 +350,23 @@ public class UIManager : MonoBehaviour
 
     public static void DeleteThisActor(int index)
     {
-        print("Delete index" + index + " of spawnedObjects");
-        print("Before Delete " + spawnedObjects.Count);
         Destroy(spawnedObjects[index].transform.gameObject);
         spawnedObjects.RemoveAt(index);
-        print("After Delete " + spawnedObjects.Count);
     }
 
+    // this is an update to the currently loaded missions
     public void SaveMission()
     {
-        // pull the sceneactor data off of our gameobjects
+        //clear out current missionActors so we have 
+        thisMission.missionActors = new List<SceneActor>();
+        // pull the sceneactor data off of our gameobjects so we have updated data to save
         foreach (GameObject actor in spawnedObjects)
             thisMission.missionActors.Add(actor.GetComponent<SelectModel>().mySceneData);
 
-        print(thisMission.missionActors.Count);
         thisMission.localMissionWeather = WeatherManager.localWeather;
-        thisMission.missionIndex = missionIndexToLoad;//how we know which index to update in DB
         Directions.text = savingData;
         MissionButtonText.text = "UPDATING...";
-        StartCoroutine(PostSavedData());
+        StartCoroutine(PostSavedData(false));
     }
 
     public void SaveNewMission()
@@ -355,10 +376,9 @@ public class UIManager : MonoBehaviour
             thisMission.missionActors.Add(actor.GetComponent<SelectModel>().mySceneData);
 
         thisMission.localMissionWeather = WeatherManager.localWeather;
-        thisMission.missionIndex = missionIndexToLoad;
         Directions.text = savingData;
         MissionButtonText.text = "SAVING...";
-        StartCoroutine(PostSavedData());
+        StartCoroutine(PostSavedData(true));
     }
 
     // triggered from setting the dropdown
@@ -399,8 +419,12 @@ public class UIManager : MonoBehaviour
         // send weather data over to the weather manager
         WeatherManager.SetWeatherData(missionList.missions[missionIndexToLoad].localMissionWeather);
         currentMission.text = missionList.missions[missionIndexToLoad].name;
+        //set thisMission to what we have loaded
+        thisMission = missionList.missions[missionIndexToLoad];
         HandleDirectionsText($"{missionList.missions[missionIndexToLoad].name} loaded successfully!");
         // hide the mission and library panel once we load so user can see the whole scene view
+        MissionButtonText.text = "LOADED!";
+        StartCoroutine(Countdown(MissionButtonText, 3, "Mission Data"));
         MissionPanel.SetActive(false);
         LibraryPanel.SetActive(false);
         isSceneLoaded = true;
@@ -464,7 +488,7 @@ public class UIManager : MonoBehaviour
     private void HandleDirectionsText(string newText)
     {
         Directions.text = newText;
-        StartCoroutine(Countdown(3));
+        StartCoroutine(Countdown(Directions, 3, ""));
     }
 
     private void Start()

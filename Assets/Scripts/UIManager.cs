@@ -84,13 +84,12 @@ public class UIManager : MonoBehaviour
     {
         string data = JsonUtility.ToJson(thisMission);
 
-        string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/deleteMission";
-        var request = new UnityWebRequest(url, "POST");
+        string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/deleteMission?name{thisMission.name}";
+        var request = new UnityWebRequest(url, "DELETE");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Access-Control-Allow-Methods", "POST");
-        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Access-Control-Allow-Methods", "DELETE");
         request.SetRequestHeader("Access-Control-Allow-Headers", "*");
         request.SetRequestHeader("Access-Control-Allow-Origin", "https://cx-edge-terrain.web.app");
 
@@ -102,15 +101,25 @@ public class UIManager : MonoBehaviour
         else
         {
             Debug.Log("Status Code: " + request.responseCode);
-            HandleDirectionsText("Mission deleted successfully!");
-            MissionPanel.SetActive(false);
+            if (request.responseCode == 200)
+            {
+                HandleDirectionsText("Mission deleted successfully!");
+                MissionPanel.SetActive(false);
+                MissionButtonText.text = "Mission Data";
+            }
+            else
+            {
+                HandleDirectionsText("There was an error deleting the mission!");
+                MissionPanel.SetActive(false);
+                MissionButtonText.text = "ERROR DELETING";
+            }
 
-            MissionButtonText.text = "Mission Data";
         }
 
     }
 
 
+    // PostSavedData is used to both create new missions and will also update them
     IEnumerator PostSavedData()
     {
         string data = JsonUtility.ToJson(thisMission);
@@ -142,43 +151,11 @@ public class UIManager : MonoBehaviour
             m_dropDownOptions.Add(newOption);
             // and to the missionlist
             missionList.missions.Add(thisMission);
-
             MissionButtonText.text = "Mission Data";
-
         }
-
     }
 
-    IEnumerator PostUpdatedData()
-    {
-        string data = JsonUtility.ToJson(thisMission);
 
-        string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/updateMission";
-        var request = new UnityWebRequest(url, "POST");
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Access-Control-Allow-Methods", "POST");
-        request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Access-Control-Allow-Headers", "*");
-        request.SetRequestHeader("Access-Control-Allow-Origin", "https://cx-edge-terrain.web.app");
-
-        yield return request.SendWebRequest();
-        if (request.isNetworkError)
-        {
-            Debug.Log("Error: " + request.error);
-        }
-        else
-        {
-            Debug.Log("Status Code: " + request.responseCode);
-            HandleDirectionsText(savingDataSuccess);
-            MissionPanel.SetActive(false);
-
-            MissionButtonText.text = "Mission Data";
-
-        }
-
-    }
 
     IEnumerator LoadAvailableMissions(string url)
     {
@@ -368,7 +345,7 @@ public class UIManager : MonoBehaviour
         thisMission.missionIndex = missionIndexToLoad;//how we know which index to update in DB
         Directions.text = savingData;
         MissionButtonText.text = "UPDATING...";
-        StartCoroutine(PostUpdatedData());
+        StartCoroutine(PostSavedData());
     }
 
     public void SaveNewMission()
@@ -495,7 +472,7 @@ public class UIManager : MonoBehaviour
         // we need to fetch the available missions
         Directions.text = loadingData;
         MissionButtonText.text = "LOADING...";
-        StartCoroutine(LoadAvailableMissions("https://us-central1-octo-ar-demo.cloudfunctions.net/getSavedMissions"));
+        StartCoroutine(LoadAvailableMissions("https://us-central1-octo-ar-demo.cloudfunctions.net/getAllMissions"));
 
         NewMission(true);
 

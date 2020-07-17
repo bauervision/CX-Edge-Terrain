@@ -78,8 +78,11 @@ namespace MissionWeather
         public Text windSpeedText;
         public Text windDirText;
         public Text timezoneText;
+        public Text timezoneRegionText;
         public Text latText;
+        public Text latTextPlaceholder;
         public Text lonText;
+        public Text lonTextPlaceholder;
         public Text timeText;
         public GameObject NewLocationPanel;
         public Slider timeSlider;
@@ -187,13 +190,21 @@ namespace MissionWeather
         public void SetNewLat(string newLat)
         {
             userLat = float.Parse(newLat);
-            GameObject.Find("SetTextLat").GetComponent<Text>().text = userLat.ToString();
+            var latText = GameObject.Find("SetTextLat");
+            if (latText != null)
+                latText.GetComponent<Text>().text = userLat.ToString();
+
+
         }
 
         public void SetNewLon(string newLon)
         {
             userLon = float.Parse(newLon);
-            GameObject.Find("SetTextLon").GetComponent<Text>().text = userLon.ToString();
+            var lonText = GameObject.Find("SetTextLon");
+            if (lonText != null)
+                lonText.GetComponent<Text>().text = userLon.ToString();
+
+
         }
 
         public void GetLocationWeatherData()
@@ -205,7 +216,15 @@ namespace MissionWeather
 
         private void SetWeatherData()
         {
+
+            if (latTextPlaceholder != null)
+                latTextPlaceholder.text = userLat.ToString();
+
+            if (lonTextPlaceholder != null)
+                lonTextPlaceholder.text = userLon.ToString();
+
             timezoneText.text = localWeather.timezone;
+            timezoneRegionText.text = localWeather.timezone;
             latText.text = $"{localWeather.lat} LAT";
             lonText.text = $"{localWeather.lon} LON";
             cloudsText.text = $"Clouds: {localWeather.current.clouds}%";

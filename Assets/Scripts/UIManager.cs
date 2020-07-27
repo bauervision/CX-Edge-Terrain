@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
     public GameObject DeleteMissionButton;
     public GameObject NewMissionPanel;
     public GameObject SaveMissionPanel;
+    public GameObject BottomPanel;
     public Text Directions;
     public Dropdown dropDown;
     public Text currentMission;
@@ -503,6 +504,8 @@ public class UIManager : MonoBehaviour
         LibraryPanel.SetActive(false);
         WeatherPanel.SetActive(false);
         MissionPanel.SetActive(false);
+        // move the bottom panel out of view but dont set it as inactive, otherwise...errors
+        BottomPanel.GetComponent<RectTransform>().position = new Vector3(-593, -411, 0);
         DeleteMissionButton.SetActive(false);
         helpGuide.SetActive(false);
     }

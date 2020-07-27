@@ -8,17 +8,11 @@ public class Initializer : MonoBehaviour
     public GameObject EditorPanel;
     public GameObject ViewerPanel;
     public GameObject BackButton;
-    public GameObject ValidateButton;
-    public GameObject GenerateButton;
-    public TextAlignment RegionText;
-
-
-
+    public GameObject terrain;
+    public GameObject sky;
     public GameObject TerrainLoadPanel;
     public GameObject TerrainGenerationPanel;
-
-    private string lat = "";
-    private string lon = "";
+    public GameObject mapLight;
 
     public void LoadViewer()
     {
@@ -43,25 +37,12 @@ public class Initializer : MonoBehaviour
         InitialPanel.SetActive(true);
     }
 
-    public void SetLat(string newLat)
-    {
-        lat = newLat;
-    }
 
-    public void SetLon(string newLon)
-    {
-        lon = newLon;
-    }
-
-    public void ValidateCoords()
-    {
-        print("lat: " + lat + "  lon: " + lon);
-        if (lat != "" && lon != "")
-            GenerateButton.GetComponent<Button>().enabled = true;
-    }
     public void GenerateTerrain()
     {
         TerrainLoadPanel.SetActive(false);
+        sky.SetActive(true);
+        mapLight.SetActive(false);
     }
 
     public void LoadTerrain()
@@ -74,9 +55,13 @@ public class Initializer : MonoBehaviour
         //EditorPanel.SetActive(false);
         ViewerPanel.SetActive(false);
         TerrainLoadPanel.SetActive(false);
+        TerrainGenerationPanel.SetActive(false);
         BackButton.SetActive(false);
-        GenerateButton.GetComponent<Button>().enabled = false;
+
+        terrain.SetActive(false);
+        sky.SetActive(false);
 
     }
+
 
 }

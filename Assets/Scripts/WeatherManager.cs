@@ -70,6 +70,7 @@ namespace MissionWeather
 
     public class WeatherManager : MonoBehaviour
     {
+        private static WeatherManager instance;
         #region PublicMembers
         public Text forecastText;
         public Text tempText;
@@ -93,8 +94,8 @@ namespace MissionWeather
         #endregion
 
         #region PrivateMembers
-        private float userLat = 36.695620f;// my house
-        private float userLon = -76.198450f;
+        public static float userLat = 36.695620f;// my house
+        public static float userLon = -76.198450f;
 
         #endregion
 
@@ -138,6 +139,7 @@ namespace MissionWeather
         // Launch the fetch to the API and grab the data
         void Start()
         {
+            instance = this;
             GetLocationWeatherData();
             NewLocationPanel.SetActive(false);
         }
@@ -207,10 +209,12 @@ namespace MissionWeather
 
         }
 
-        public void GetLocationWeatherData()
+
+
+        public static void GetLocationWeatherData()
         {
-            NewLocationPanel.SetActive(false);
-            StartCoroutine(GetRequest($"https://api.openweathermap.org/data/2.5/onecall?lat={userLat}&lon={userLon}&exclude=minutely,hourly,%20daily&units=imperial&appid=0ce2abbf4237a937a882f6497cb0cc92"));
+            instance.NewLocationPanel.SetActive(false);
+            instance.StartCoroutine(instance.GetRequest($"https://api.openweathermap.org/data/2.5/onecall?lat={userLat}&lon={userLon}&exclude=minutely,hourly,%20daily&units=imperial&appid=0ce2abbf4237a937a882f6497cb0cc92"));
         }
 
 

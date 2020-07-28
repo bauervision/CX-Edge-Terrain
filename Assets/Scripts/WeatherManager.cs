@@ -136,11 +136,11 @@ namespace MissionWeather
             // now update localweather.current.dt with converted unix timestamp
             localWeather.current.dt = unixDateTime;
         }
-        // Launch the fetch to the API and grab the data
+
         void Start()
         {
             instance = this;
-            GetLocationWeatherData();
+            //GetLocationWeatherData();
             NewLocationPanel.SetActive(false);
         }
 
@@ -217,16 +217,17 @@ namespace MissionWeather
             instance.StartCoroutine(instance.GetRequest($"https://api.openweathermap.org/data/2.5/onecall?lat={userLat}&lon={userLon}&exclude=minutely,hourly,%20daily&units=imperial&appid=0ce2abbf4237a937a882f6497cb0cc92"));
         }
 
+        public static void SetCoordText()
+        {
+            if (instance.latTextPlaceholder != null)
+                instance.latTextPlaceholder.text = userLat.ToString();
+
+            if (instance.lonTextPlaceholder != null)
+                instance.lonTextPlaceholder.text = userLon.ToString();
+        }
 
         private void SetWeatherData()
         {
-
-            if (latTextPlaceholder != null)
-                latTextPlaceholder.text = userLat.ToString();
-
-            if (lonTextPlaceholder != null)
-                lonTextPlaceholder.text = userLon.ToString();
-
             timezoneText.text = localWeather.timezone;
             timezoneRegionText.text = localWeather.timezone;
             latText.text = $"{localWeather.lat} LAT";

@@ -13,6 +13,10 @@ public class Initializer : MonoBehaviour
     public GameObject TerrainLoadPanel;
     public GameObject TerrainGenerationPanel;
     public GameObject mapLight;
+    public GameObject map;
+    public GameObject horizon;
+    public Camera startCamera;
+    public Camera terrainCamera;
 
     public void LoadViewer()
     {
@@ -26,6 +30,7 @@ public class Initializer : MonoBehaviour
         InitialPanel.SetActive(false);
         TerrainLoadPanel.SetActive(true);
         BackButton.SetActive(true);
+        map.SetActive(true);
     }
 
     public void BackToInitial()
@@ -43,6 +48,10 @@ public class Initializer : MonoBehaviour
         TerrainLoadPanel.SetActive(false);
         sky.SetActive(true);
         mapLight.SetActive(false);
+        horizon.SetActive(true);
+
+        startCamera.enabled = false;
+        terrainCamera.enabled = true;
     }
 
     public void LoadTerrain()
@@ -50,8 +59,18 @@ public class Initializer : MonoBehaviour
         TerrainGenerationPanel.SetActive(false);
         BackButton.SetActive(false);
     }
+
+    public void SetMapType(int choice)
+    {
+        string[] choices = new string[] { "arcgis.worldimagery", "arcgis.worldtopomap", "arcgis.worldstreetmap" };
+
+        OnlineMaps.instance.mapType = choices[choice];
+    }
     private void Start()
     {
+        startCamera.enabled = true;
+        terrainCamera.enabled = false;
+
         //EditorPanel.SetActive(false);
         ViewerPanel.SetActive(false);
         TerrainLoadPanel.SetActive(false);
@@ -60,6 +79,8 @@ public class Initializer : MonoBehaviour
 
         terrain.SetActive(false);
         sky.SetActive(false);
+        map.SetActive(false);
+        horizon.SetActive(false);
 
     }
 

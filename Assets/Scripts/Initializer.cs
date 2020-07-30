@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-
+using MissionWeather;
 public class Initializer : MonoBehaviour
 {
     public GameObject InitialPanel;
@@ -49,9 +49,17 @@ public class Initializer : MonoBehaviour
         sky.SetActive(true);
         mapLight.SetActive(false);
         horizon.SetActive(true);
+        // stop monitoring clicks on the terrain
+        InfinityCode.OnlineMapsExamples.DrawMarkerRange.RemoveClickHandler();
+        OnlineMapsTileSetControl.instance.allowUserControl = false;
+        CameraFly.isActive = true;
 
         startCamera.enabled = false;
         terrainCamera.enabled = true;
+        terrainCamera.gameObject.tag = "MainCamera";
+
+        WeatherManager.GetLocationWeatherData();
+
     }
 
     public void LoadTerrain()

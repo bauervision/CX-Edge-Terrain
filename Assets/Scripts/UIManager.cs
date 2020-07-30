@@ -51,7 +51,7 @@ public class UIManager : MonoBehaviour
     private List<SceneActor> savedObjects = new List<SceneActor>();
 
     [SerializeField]
-    private KeyCode newObjectHotkey = KeyCode.A;
+    private KeyCode newObjectHotkey = KeyCode.Space;
 
     // a gameobject will allow us to grab transform values
     private GameObject currentPlaceableObject;
@@ -504,8 +504,8 @@ public class UIManager : MonoBehaviour
         LibraryPanel.SetActive(false);
         WeatherPanel.SetActive(false);
         MissionPanel.SetActive(false);
-        // move the bottom panel out of view but dont set it as inactive, otherwise...errors
-        BottomPanel.GetComponent<RectTransform>().position = new Vector3(-593, -411, 0);
+        // // move the bottom panel out of view but dont set it as inactive, otherwise...errors
+        // BottomPanel.GetComponent<RectTransform>().position = new Vector3(-593, -411, 0);
         DeleteMissionButton.SetActive(false);
         helpGuide.SetActive(false);
     }

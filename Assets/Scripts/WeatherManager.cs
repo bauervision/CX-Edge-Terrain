@@ -79,7 +79,7 @@ namespace MissionWeather
         public Text windSpeedText;
         public Text windDirText;
         public Text timezoneText;
-        public Text timezoneRegionText;
+
         public Text latText;
         public Text latTextPlaceholder;
         public Text lonText;
@@ -140,7 +140,6 @@ namespace MissionWeather
         void Start()
         {
             instance = this;
-            //GetLocationWeatherData();
             NewLocationPanel.SetActive(false);
         }
 
@@ -229,7 +228,6 @@ namespace MissionWeather
         private void SetWeatherData()
         {
             timezoneText.text = localWeather.timezone;
-            timezoneRegionText.text = localWeather.timezone;
             latText.text = $"{localWeather.lat} LAT";
             lonText.text = $"{localWeather.lon} LON";
             cloudsText.text = $"Clouds: {localWeather.current.clouds}%";

@@ -12,6 +12,7 @@ namespace InfinityCode.OnlineMapsExamples
 
     public class DrawMarkerRange : MonoBehaviour
     {
+        public static DrawMarkerRange instance;
         /// <summary>
         /// Radius of the circle
         /// </summary>
@@ -93,9 +94,15 @@ namespace InfinityCode.OnlineMapsExamples
         /// </summary>
         private void Start()
         {
+            instance = this;
             markerText.SetActive(false);
             // Subscribe to click on map event
             OnlineMapsControlBase.instance.OnMapClick += OnMapClick;
+        }
+
+        public static void RemoveClickHandler()
+        {
+            OnlineMapsControlBase.instance.OnMapClick -= instance.OnMapClick;
         }
     }
 }

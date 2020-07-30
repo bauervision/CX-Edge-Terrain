@@ -24,7 +24,7 @@ public class GetCoords : MonoBehaviour
         WeatherManager.userLat = (float)lat;
         WeatherManager.userLon = (float)lng;
         WeatherManager.SetCoordText();
-        //WeatherManager.GetLocationWeatherData();
+
 
 
     }

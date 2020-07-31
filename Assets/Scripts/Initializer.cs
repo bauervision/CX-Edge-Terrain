@@ -8,7 +8,6 @@ public class Initializer : MonoBehaviour
     public GameObject EditorPanel;
     public GameObject ViewerPanel;
     public GameObject BackButton;
-    public GameObject terrain;
     public GameObject sky;
     public GameObject TerrainLoadPanel;
     public GameObject TerrainGenerationPanel;
@@ -17,6 +16,11 @@ public class Initializer : MonoBehaviour
     public GameObject horizon;
     public Camera startCamera;
     public Camera terrainCamera;
+
+    public GameObject generateButton;
+
+    public static bool MarkerSet = false;
+    public static bool MinimumZoom = false;
 
     public void LoadViewer()
     {
@@ -85,11 +89,20 @@ public class Initializer : MonoBehaviour
         TerrainGenerationPanel.SetActive(false);
         BackButton.SetActive(false);
 
-        terrain.SetActive(false);
         sky.SetActive(false);
         map.SetActive(false);
         horizon.SetActive(false);
 
+        generateButton.GetComponent<Button>().enabled = false;
+
+    }
+
+    private void Update()
+    {
+        if (MinimumZoom && MarkerSet)
+        {
+            generateButton.GetComponent<Button>().enabled = true;
+        }
     }
 
 

@@ -25,7 +25,7 @@ public class GetCoords : MonoBehaviour
         WeatherManager.userLon = (float)lng;
         WeatherManager.SetCoordText();
 
-
+        Initializer.MarkerSet = true;
 
     }
 }

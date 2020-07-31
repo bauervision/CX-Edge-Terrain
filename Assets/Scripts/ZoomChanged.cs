@@ -33,6 +33,11 @@ namespace InfinityCode.OnlineMapsExamples
             if (OnlineMaps.instance.zoom > 11)
             {
                 OptimumText.SetActive(true);
+
+                if (OnlineMaps.instance.zoom >= 15)
+                {
+                    Initializer.MinimumZoom = true;
+                }
             }
             else
             {

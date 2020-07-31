@@ -97,6 +97,11 @@ public class CameraFly : MonoBehaviour
                 {
                     transform.position -= transform.up * climbSpeed * Time.deltaTime;
                 }
+
+                if (Input.GetKeyUp(KeyCode.Q))
+                {
+                    transform.localPosition += transform.up * climbSpeed * Time.deltaTime;
+                }
             }
         }
     }

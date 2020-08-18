@@ -19,8 +19,6 @@ public class GetCoords : MonoBehaviour
         double lng, lat;
         OnlineMapsControlBase.instance.GetCoords(out lng, out lat);
 
-
-        //print("Clicked on lat: " + lat + " and lon: " + lng);
         WeatherManager.userLat = (float)lat;
         WeatherManager.userLon = (float)lng;
         WeatherManager.SetCoordText();

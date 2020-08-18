@@ -24,6 +24,7 @@ public class Initializer : MonoBehaviour
 
     public void LoadViewer()
     {
+        map.SetActive(true);
         InitialPanel.SetActive(false);
         ViewerPanel.SetActive(true);
         BackButton.SetActive(true);
@@ -49,6 +50,10 @@ public class Initializer : MonoBehaviour
 
     public void GenerateTerrain()
     {
+
+        if (ViewerPanel.activeInHierarchy)
+            ViewerPanel.SetActive(false);
+
         TerrainLoadPanel.SetActive(false);
         sky.SetActive(true);
         mapLight.SetActive(false);
@@ -63,6 +68,8 @@ public class Initializer : MonoBehaviour
         terrainCamera.gameObject.tag = "MainCamera";
 
         WeatherManager.GetLocationWeatherData();
+
+        UIManager.LoadMission();
 
     }
 

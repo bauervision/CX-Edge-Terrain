@@ -12,6 +12,7 @@ using MissionWeather;
 
 public class UIManager : MonoBehaviour
 {
+    public static UIManager instance;
 
     #region PublicUIElements
     public GameObject[] spawn;
@@ -24,6 +25,7 @@ public class UIManager : MonoBehaviour
     public GameObject BottomPanel;
     public Text Directions;
     public Dropdown dropDown;
+    public Dropdown viewerDropDown;
     public Text currentMission;
     public Text currentElement;
     public Text currentElementForce;
@@ -32,6 +34,8 @@ public class UIManager : MonoBehaviour
     public Text MissionButtonText;
 
     public static bool isEditing = false;
+    public static double loadedMissionLat;
+    public static double loadedMissionLon;
 
     #endregion
 
@@ -40,7 +44,7 @@ public class UIManager : MonoBehaviour
     private bool isSceneLoaded = false;
     private static SceneActor currentSceneActor;
     private int missionIndexToLoad = 0;
-    private List<Dropdown.OptionData> m_dropDownOptions = new List<Dropdown.OptionData>();
+    private List<Dropdown.OptionData> editor_dropDownOptions = new List<Dropdown.OptionData>();
     private int activeSpawnIndex;
     Vector3 MousePosition, TargetPosition;
 
@@ -106,9 +110,11 @@ public class UIManager : MonoBehaviour
                 NewMission(false);
                 //remove the loaded mission
                 missionList.missions.RemoveAt(missionIndexToLoad);
-                m_dropDownOptions.RemoveAt(missionIndexToLoad + 1);//account for the "select Mission..." index
+                editor_dropDownOptions.RemoveAt(missionIndexToLoad + 1);//account for the "select Mission..." index
+
                 Clear();
                 dropDown.value = 0;// reset dropdown to initial
+                viewerDropDown.value = 0;
                 MissionButtonText.text = "DELETED";
                 StartCoroutine(Countdown(MissionButtonText, 3, "Mission Data")); ;
 
@@ -157,11 +163,13 @@ public class UIManager : MonoBehaviour
                     // add this new mission to dropdown options
                     Dropdown.OptionData newOption = new Dropdown.OptionData();
                     newOption.text = thisMission.name;
-                    m_dropDownOptions.Add(newOption);
+                    editor_dropDownOptions.Add(newOption);
+
                     // and to the missionlist
                     missionList.missions.Add(thisMission);
                     MissionButtonText.text = "SAVED!";
-                    dropDown.value = m_dropDownOptions.Count;// reset dropdown to initial
+                    dropDown.value = editor_dropDownOptions.Count;// reset dropdown to initial
+                    viewerDropDown.value = editor_dropDownOptions.Count;
                 }
                 else
                 {
@@ -200,17 +208,18 @@ public class UIManager : MonoBehaviour
                 // set the first option as the "Select Mission" option
                 Dropdown.OptionData firstOption = new Dropdown.OptionData();
                 firstOption.text = "Select a mission...";
-                m_dropDownOptions.Add(firstOption);
+                editor_dropDownOptions.Add(firstOption);
 
                 // run through and populate our dropdown with saved missions
                 foreach (Mission mission in missionList)
                 {
                     Dropdown.OptionData newOption = new Dropdown.OptionData();
                     newOption.text = mission.name;
-                    m_dropDownOptions.Add(newOption);
+                    editor_dropDownOptions.Add(newOption);
                 }
 
-                dropDown.options = m_dropDownOptions;
+                dropDown.options = editor_dropDownOptions;
+                viewerDropDown.options = editor_dropDownOptions;
                 HandleDirectionsText($"All {missionList.missions.Count} missions successfully loaded!");
                 MissionButtonText.text = "LOADED";
                 StartCoroutine(Countdown(MissionButtonText, 2, "Mission Data"));
@@ -364,6 +373,8 @@ public class UIManager : MonoBehaviour
             thisMission.missionActors.Add(actor.GetComponent<SelectModel>().mySceneData);
 
         thisMission.localMissionWeather = WeatherManager.localWeather;
+        thisMission.missionLatitude = WeatherManager.userLat;
+        thisMission.missionLongitude = WeatherManager.userLon;
         Directions.text = savingData;
         MissionButtonText.text = "UPDATING...";
         StartCoroutine(PostSavedData(false));
@@ -376,6 +387,8 @@ public class UIManager : MonoBehaviour
             thisMission.missionActors.Add(actor.GetComponent<SelectModel>().mySceneData);
 
         thisMission.localMissionWeather = WeatherManager.localWeather;
+        thisMission.missionLatitude = WeatherManager.userLat;
+        thisMission.missionLongitude = WeatherManager.userLon;
         Directions.text = savingData;
         MissionButtonText.text = "SAVING...";
         StartCoroutine(PostSavedData(true));
@@ -385,10 +398,24 @@ public class UIManager : MonoBehaviour
     public void SetMissionToLoad(int missionIndex)
     {
         missionIndexToLoad = missionIndex - 1; //account for the "select mission" option
+        OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
     }
 
-    public void LoadMission()
+    public void SetMissionToLoadViewer(int missionIndex)
     {
+        missionIndexToLoad = missionIndex - 1; //account for the "select mission" option
+
+        loadedMissionLat = missionList.missions[missionIndexToLoad].missionLatitude;
+        loadedMissionLon = missionList.missions[missionIndexToLoad].missionLongitude;
+
+        print(loadedMissionLon + " & " + loadedMissionLat);
+
+        OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
+    }
+
+    public static void LoadMission()
+    {
+
         /* WebGL doesn't use binary file saving --legacy for this demo, but worth saving for the exe version
         thisMission = SaveLoad.Load();*/
 
@@ -397,37 +424,61 @@ public class UIManager : MonoBehaviour
         // first clear out any current scene data
         if (spawnedObjects.Count > 0)
         {
-            ClearBeforeLoad();
+            instance.ClearBeforeLoad();
         }
 
+        // push the map update
+        WeatherManager.SetNewCoords(instance.missionList.missions[instance.missionIndexToLoad].missionLatitude, instance.missionList.missions[instance.missionIndexToLoad].missionLongitude);
 
         // for each actor saved, instantiate the proper mesh and update its transform
-        foreach (SceneActor actor in missionList.missions[missionIndexToLoad].missionActors)
+        foreach (SceneActor actor in instance.missionList.missions[instance.missionIndexToLoad].missionActors)
         {
-            GameObject newActor = Instantiate(spawn[actor.actorIndex]);
-            newActor.transform.position = new Vector3(actor.positionX, actor.positionY, actor.positionZ);
-            newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+            OnlineMapsControlBase3D control = OnlineMapsControlBase3D.instance;
+            OnlineMapsMarker3D marker3D;
+
+            if (control == null)
+            {
+                Debug.LogError("You must use the 3D control (Texture or Tileset).");
+                return;
+            }
+
+            // Marker position. Geographic coordinates.
+            Vector2 markerPosition = new Vector2((float)actor.actorLongitude, (float)actor.actorLatitude);
+
+            // Create 3D marker
+            marker3D = OnlineMapsMarker3DManager.CreateItem(markerPosition, instance.spawn[actor.actorIndex]);
+            print("marker3d altitude = " + marker3D.altitude);
+
+
+            GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], marker3D.relativePosition, marker3D.rotation);
+
+
+            // newActor.transform.position = coordPosition;
+            // newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
             // make sure we turn on the collider so we can select and translate the actors
             newActor.GetComponent<BoxCollider>().enabled = true;
             // push the saved data onto the game object
             SelectModel.SetMySceneData(actor);
 
             spawnedObjects.Add(newActor);
+            Destroy(marker3D.transform.gameObject);
+
+
 
         }
 
         // send weather data over to the weather manager
-        WeatherManager.SetWeatherData(missionList.missions[missionIndexToLoad].localMissionWeather);
-        currentMission.text = missionList.missions[missionIndexToLoad].name;
+        WeatherManager.SetWeatherData(instance.missionList.missions[instance.missionIndexToLoad].localMissionWeather);
+        instance.currentMission.text = instance.missionList.missions[instance.missionIndexToLoad].name;
         //set thisMission to what we have loaded
-        thisMission = missionList.missions[missionIndexToLoad];
-        HandleDirectionsText($"{missionList.missions[missionIndexToLoad].name} loaded successfully!");
+        instance.thisMission = instance.missionList.missions[instance.missionIndexToLoad];
+        instance.HandleDirectionsText($"{ instance.missionList.missions[instance.missionIndexToLoad].name} loaded successfully!");
         // hide the mission and library panel once we load so user can see the whole scene view
-        MissionButtonText.text = "LOADED!";
-        StartCoroutine(Countdown(MissionButtonText, 3, "Mission Data"));
-        MissionPanel.SetActive(false);
-        LibraryPanel.SetActive(false);
-        isSceneLoaded = true;
+        instance.MissionButtonText.text = "LOADED!";
+        instance.StartCoroutine(instance.Countdown(instance.MissionButtonText, 3, "Mission Data"));
+        instance.MissionPanel.SetActive(false);
+        instance.LibraryPanel.SetActive(false);
+        instance.isSceneLoaded = true;
     }
 
     public void SetMissionName(string newName)
@@ -493,6 +544,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        instance = this;
         // we need to fetch the available missions
         Directions.text = loadingData;
         MissionButtonText.text = "LOADING...";
@@ -643,6 +695,8 @@ public class UIManager : MonoBehaviour
         RaycastHit hitInfo;
         if (Physics.Raycast(ray, out hitInfo))
         {
+
+
             currentPlaceableObject.transform.position = hitInfo.point;
             currentPlaceableObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
         }
@@ -663,6 +717,10 @@ public class UIManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            double lng, lat;
+            OnlineMapsControlBase.instance.GetCoords(out lng, out lat);
+            print("Placed actor @ lat: " + lat + " long " + lng);
+
             // we need to turn on the collider once we place the gameobject
             currentPlaceableObject.GetComponent<BoxCollider>().enabled = true;
 
@@ -673,7 +731,7 @@ public class UIManager : MonoBehaviour
             SceneActor newActor = new SceneActor();
             newActor.forceType = currentForce;
             // set its transforms to currentPlaceableObject
-            newActor.SetPosition(currentID, activeSpawnIndex, isBlueForceObject, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles);
+            newActor.SetPosition(currentID, activeSpawnIndex, isBlueForceObject, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, lat, lng);
             // and add it to the list
             savedObjects.Add(newActor);
 

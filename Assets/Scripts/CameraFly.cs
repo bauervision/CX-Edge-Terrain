@@ -31,14 +31,19 @@ public class CameraFly : MonoBehaviour
     public bool limitYRotation = false;
 
     public static bool isActive = false;
-    private Vector2 cameraRotation;
-    private bool cameraLocked = false;
+    private Vector3 cameraRotation;
+    public bool cameraLocked = false;
 
     [SerializeField]
     private KeyCode ToggleCameraMode = KeyCode.Return;
 
     private Material shader;
 
+    private void Start()
+    {
+        cameraRotation = new Vector3(180, -45);
+
+    }
 
     // Update is called once per frame
     private void Update()
@@ -55,19 +60,12 @@ public class CameraFly : MonoBehaviour
     {
         if (isActive)
         {
+            print("Camera starts at " + cameraRotation);
             if (!cameraLocked)
             {
+
                 cameraRotation.x += Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
                 cameraRotation.y += Input.GetAxis("Mouse Y") * sensitivity * Time.deltaTime;
-
-                if (limitXRotation)
-                {
-                    cameraRotation.x = Mathf.Clamp(cameraRotation.x, rotationLimitsX.x, rotationLimitsX.y);
-                }
-                if (limitYRotation)
-                {
-                    cameraRotation.y = Mathf.Clamp(cameraRotation.y, rotationLimitsY.x, rotationLimitsY.y);
-                }
 
                 transform.localRotation = Quaternion.AngleAxis(cameraRotation.x, Vector3.up);
                 transform.localRotation *= Quaternion.AngleAxis(cameraRotation.y, Vector3.left);

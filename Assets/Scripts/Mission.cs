@@ -33,6 +33,9 @@ public class Mission
     public List<SceneActor> missionActors;
     //store the weather for the mission
     public WeatherData localMissionWeather;
+
+    public double missionLatitude;
+    public double missionLongitude;
     // public Time missionTime;
 
     public Mission()

@@ -94,8 +94,8 @@ namespace MissionWeather
         #endregion
 
         #region PrivateMembers
-        public static float userLat = 36.695620f;// my house
-        public static float userLon = -76.198450f;
+        public static double userLat = 36.695620f;// my house
+        public static double userLon = -76.198450f;
 
         #endregion
 
@@ -267,10 +267,25 @@ namespace MissionWeather
             timeSlider.value = timeFloat;
         }
 
-        private void SetNewCoords()
+        public static void SetNewCoords(double lat, double lon)
         {
-            GameObject.Find("SetTextLat").GetComponent<Text>().text = userLat.ToString();
-            GameObject.Find("SetTextLon").GetComponent<Text>().text = userLon.ToString();
+            userLat = lat;
+            userLon = lon;
+            print("Set Coords" + lat + " : " + lon);
+            OnlineMaps.instance.SetPosition(lon, lat);
+        }
+
+        public void SetNewCoords()
+        {
+            GameObject setLatText = GameObject.Find("SetTextLat");
+            if (setLatText != null)
+            {
+                GameObject.Find("SetTextLat").GetComponent<Text>().text = userLat.ToString();
+                GameObject.Find("SetTextLon").GetComponent<Text>().text = userLon.ToString();
+            }
+
+            print("Set Coords" + userLon + " : " + userLat);
+            OnlineMaps.instance.SetPosition((double)userLon, (double)userLat);
         }
         public void SetAlaska()
         {

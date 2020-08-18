@@ -10,15 +10,21 @@ public class SceneActor
     public int actorIndex;
     public float positionX, positionY, positionZ, rotationX, rotationY, rotationZ;
 
+    public double actorLatitude;
+    public double actorLongitude;
     public string description;
 
 
     //called when the user finalizes the model
-    public void SetPosition(int id, int index, bool isBlue, Vector3 pos, Vector3 rot)
+    public void SetPosition(int id, int index, bool isBlue, Vector3 pos, Vector3 rot, double lat, double lng)
     {
         this.isBlueForce = isBlue;
         this.actorIndex = index;// which index is the mesh we chose?
         this.id = id; // specific id for this object index of when it was spawned in the scene.
+
+        this.actorLatitude = lat;
+        this.actorLongitude = lng;
+
         this.positionX = (float)System.Math.Round(pos.x, 2);
         this.positionY = (float)System.Math.Round(pos.y, 2);
         this.positionZ = (float)System.Math.Round(pos.z, 2);

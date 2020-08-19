@@ -14,6 +14,9 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
 
+    public enum AppState { Init, Editor, Viewer };
+    public static AppState myAppState;
+
     #region PublicUIElements
     public GameObject[] spawn;
     public GameObject LibraryPanel;
@@ -37,10 +40,16 @@ public class UIManager : MonoBehaviour
     public static double loadedMissionLat;
     public static double loadedMissionLon;
 
+    public static bool readOnly = false;
+
     #endregion
 
     #region PrivateMembers
 
+
+
+    private Canvas editorCanvas;
+    private Canvas viewerCanvas;
     private bool isSceneLoaded = false;
     private static SceneActor currentSceneActor;
     private int missionIndexToLoad = 0;
@@ -82,6 +91,11 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
+    private void Awake()
+    {
+        editorCanvas = GameObject.Find("EditorCanvas").GetComponent<Canvas>();
+        viewerCanvas = GameObject.Find("ViewerCanvas").GetComponent<Canvas>();
+    }
 
     #region IEnumerators
 
@@ -408,17 +422,11 @@ public class UIManager : MonoBehaviour
         loadedMissionLat = missionList.missions[missionIndexToLoad].missionLatitude;
         loadedMissionLon = missionList.missions[missionIndexToLoad].missionLongitude;
 
-        print(loadedMissionLon + " & " + loadedMissionLat);
-
         OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
     }
 
     public static void LoadMission()
     {
-
-        /* WebGL doesn't use binary file saving --legacy for this demo, but worth saving for the exe version
-        thisMission = SaveLoad.Load();*/
-
         /* when we hit the load mission button, update all scene data with the desired mission */
 
         // first clear out any current scene data
@@ -426,6 +434,7 @@ public class UIManager : MonoBehaviour
         {
             instance.ClearBeforeLoad();
         }
+
 
         // push the map update
         WeatherManager.SetNewCoords(instance.missionList.missions[instance.missionIndexToLoad].missionLatitude, instance.missionList.missions[instance.missionIndexToLoad].missionLongitude);
@@ -447,14 +456,9 @@ public class UIManager : MonoBehaviour
 
             // Create 3D marker
             marker3D = OnlineMapsMarker3DManager.CreateItem(markerPosition, instance.spawn[actor.actorIndex]);
-            print("marker3d altitude = " + marker3D.altitude);
-
-
             GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], marker3D.relativePosition, marker3D.rotation);
 
-
-            // newActor.transform.position = coordPosition;
-            // newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+            newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
             // make sure we turn on the collider so we can select and translate the actors
             newActor.GetComponent<BoxCollider>().enabled = true;
             // push the saved data onto the game object
@@ -462,9 +466,6 @@ public class UIManager : MonoBehaviour
 
             spawnedObjects.Add(newActor);
             Destroy(marker3D.transform.gameObject);
-
-
-
         }
 
         // send weather data over to the weather manager
@@ -479,6 +480,7 @@ public class UIManager : MonoBehaviour
         instance.MissionPanel.SetActive(false);
         instance.LibraryPanel.SetActive(false);
         instance.isSceneLoaded = true;
+
     }
 
     public void SetMissionName(string newName)
@@ -504,17 +506,24 @@ public class UIManager : MonoBehaviour
         helpGuide.SetActive(value);
     }
 
+
+    public void ReturnToInitState()
+    {
+        myAppState = AppState.Init;
+    }
     #endregion
 
 
 
     #region PrivateMethods
 
-    private void NewMission(bool initialLoad)
+    public void NewMission(bool initialLoad)
     {
         thisMission = new Mission();
         isSceneLoaded = false;
-        currentMission.text = "Unknown Mission Name";
+        if (currentMission != null)
+            currentMission.text = "Unknown Mission Name";
+
         if (!initialLoad)
             HandleDirectionsText("Scene has been cleared of all data");
     }
@@ -545,21 +554,10 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         instance = this;
-        // we need to fetch the available missions
-        Directions.text = loadingData;
-        MissionButtonText.text = "LOADING...";
+        myAppState = AppState.Init;
+
+        // fetch the available missions
         StartCoroutine(LoadAvailableMissions("https://us-central1-octo-ar-demo.cloudfunctions.net/getAllMissions"));
-
-        NewMission(true);
-
-        HideAllPanels(-1);
-        LibraryPanel.SetActive(false);
-        WeatherPanel.SetActive(false);
-        MissionPanel.SetActive(false);
-        // // move the bottom panel out of view but dont set it as inactive, otherwise...errors
-        // BottomPanel.GetComponent<RectTransform>().position = new Vector3(-593, -411, 0);
-        DeleteMissionButton.SetActive(false);
-        helpGuide.SetActive(false);
     }
 
 
@@ -611,8 +609,33 @@ public class UIManager : MonoBehaviour
     }
 
 
-    private void Update()
+    private void HandleInitialState()
     {
+
+        if (editorCanvas.enabled)
+            editorCanvas.enabled = false;
+
+        if (viewerCanvas.enabled)
+            viewerCanvas.enabled = false;
+    }
+
+    private void HandleEditorState()
+    {
+        if (!editorCanvas.enabled)
+            editorCanvas.enabled = true;
+
+        if (viewerCanvas.enabled)
+            viewerCanvas.enabled = false;
+
+        // editor init
+        NewMission(true);
+        HideAllPanels(-1);
+        LibraryPanel.SetActive(false);
+        WeatherPanel.SetActive(false);
+        MissionPanel.SetActive(false);
+        DeleteMissionButton.SetActive(false);
+        helpGuide.SetActive(false);
+
         HandleNewObjectHotkey();
 
         if (currentPlaceableObject != null)
@@ -656,8 +679,24 @@ public class UIManager : MonoBehaviour
             }
         }
 
+    }
 
+    private void HandleViewerState()
+    {
+        if (editorCanvas.enabled)
+            editorCanvas.enabled = false;
 
+        if (!viewerCanvas.enabled)
+            viewerCanvas.enabled = true;
+    }
+    private void Update()
+    {
+        switch (myAppState)
+        {
+            case AppState.Init: { HandleInitialState(); break; }
+            case AppState.Editor: { HandleEditorState(); break; }
+            case AppState.Viewer: { HandleViewerState(); break; }
+        }
 
     }
 

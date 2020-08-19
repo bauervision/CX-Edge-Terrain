@@ -104,5 +104,10 @@ namespace InfinityCode.OnlineMapsExamples
         {
             OnlineMapsControlBase.instance.OnMapClick -= instance.OnMapClick;
         }
+
+        public static void RestoreClickHandler()
+        {
+            OnlineMapsControlBase.instance.OnMapClick += instance.OnMapClick;
+        }
     }
 }

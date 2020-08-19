@@ -10,7 +10,7 @@ public class Initializer : MonoBehaviour
     public GameObject BackButton;
     public GameObject sky;
     public GameObject TerrainLoadPanel;
-    public GameObject TerrainGenerationPanel;
+
     public GameObject mapLight;
     public GameObject map;
     public GameObject horizon;
@@ -45,15 +45,30 @@ public class Initializer : MonoBehaviour
         TerrainLoadPanel.SetActive(false);
         BackButton.SetActive(false);
         InitialPanel.SetActive(true);
+        UIManager.myAppState = UIManager.AppState.Init;
+        startCamera.enabled = true;
+        terrainCamera.enabled = false;
+        startCamera.gameObject.tag = "MainCamera";
+        OnlineMaps.instance.SetPositionAndZoom(0, 0, 2);
+        OnlineMapsTileSetControl.instance.allowUserControl = true;
+        InfinityCode.OnlineMapsExamples.DrawMarkerRange.RestoreClickHandler();
+        UIManager.instance.NewMission(false);
+
     }
 
 
-    public void GenerateTerrain()
+    public void ReturnToMissionSelect()
     {
+        UIManager.myAppState = UIManager.AppState.Init;
+        //UIManager.instance.viewerDropDown.value = 0;
+        ViewerPanel.SetActive(true);
+        startCamera.enabled = true;
+        terrainCamera.enabled = false;
+    }
 
-        if (ViewerPanel.activeInHierarchy)
-            ViewerPanel.SetActive(false);
-
+    public void GenerateEditorTerrain()
+    {
+        UIManager.myAppState = UIManager.AppState.Editor;
         TerrainLoadPanel.SetActive(false);
         sky.SetActive(true);
         mapLight.SetActive(false);
@@ -67,17 +82,33 @@ public class Initializer : MonoBehaviour
         terrainCamera.enabled = true;
         terrainCamera.gameObject.tag = "MainCamera";
 
-        WeatherManager.GetLocationWeatherData();
+        // WeatherManager.GetLocationWeatherData();
+    }
 
+    public void LoadMissionTerrain()
+    {
+        UIManager.myAppState = UIManager.AppState.Viewer;
+        ViewerPanel.SetActive(false);
+
+        sky.SetActive(true);
+        mapLight.SetActive(false);
+        horizon.SetActive(true);
+        // stop monitoring clicks on the terrain
+        InfinityCode.OnlineMapsExamples.DrawMarkerRange.RemoveClickHandler();
+        OnlineMapsTileSetControl.instance.allowUserControl = false;
+        CameraFly.isActive = true;
+
+        startCamera.enabled = false;
+        terrainCamera.enabled = true;
+        terrainCamera.gameObject.tag = "MainCamera";
+
+        // WeatherManager.GetLocationWeatherData();
         UIManager.LoadMission();
 
+
     }
 
-    public void LoadTerrain()
-    {
-        TerrainGenerationPanel.SetActive(false);
-        BackButton.SetActive(false);
-    }
+
 
     public void SetMapType(int choice)
     {
@@ -93,7 +124,6 @@ public class Initializer : MonoBehaviour
         //EditorPanel.SetActive(false);
         ViewerPanel.SetActive(false);
         TerrainLoadPanel.SetActive(false);
-        TerrainGenerationPanel.SetActive(false);
         BackButton.SetActive(false);
 
         sky.SetActive(false);

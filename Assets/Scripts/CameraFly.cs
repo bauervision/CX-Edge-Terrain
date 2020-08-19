@@ -60,7 +60,7 @@ public class CameraFly : MonoBehaviour
     {
         if (isActive)
         {
-            print("Camera starts at " + cameraRotation);
+
             if (!cameraLocked)
             {
 

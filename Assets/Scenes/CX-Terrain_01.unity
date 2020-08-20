@@ -6696,7 +6696,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 114.600006, y: -584}
+  m_AnchoredPosition: {x: 114, y: -584}
   m_SizeDelta: {x: 88.1, y: 40}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &621736333
@@ -9725,6 +9725,7 @@ MonoBehaviour:
   speed: {x: 1, y: 1}
   lockTilt: 0
   lockPan: 0
+  isCameraControl: 0
 --- !u!114 &851805436
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13434,7 +13435,7 @@ MonoBehaviour:
   mapLight: {fileID: 233715537}
   map: {fileID: 851805432}
   horizon: {fileID: 1973686207}
-  startCamera: {fileID: 288254472}
+  startCameraGO: {fileID: 288254470}
   terrainCamera: {fileID: 685940463}
   generateButton: {fileID: 1350172221}
 --- !u!1 &1090313072
@@ -19650,7 +19651,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 0
+  m_Text: 2
 --- !u!222 &1725212348
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -517,7 +517,7 @@ public class UIManager : MonoBehaviour
 
     #region PrivateMethods
 
-    public void NewMission(bool initialLoad)
+    private void NewMission(bool initialLoad)
     {
         thisMission = new Mission();
         isSceneLoaded = false;
@@ -528,12 +528,13 @@ public class UIManager : MonoBehaviour
             HandleDirectionsText("Scene has been cleared of all data");
     }
 
-    private void ClearBeforeLoad()
+    public void ClearBeforeLoad()
     {
         steps = -1;
         HideAllPanels(-1);
         // clear all spawned objects from the map
-        foreach (GameObject spawned in spawnedObjects)
+        GameObject[] deleteThese = GameObject.FindGameObjectsWithTag("spawnedModel");
+        foreach (GameObject spawned in deleteThese)
         {
             Destroy(spawned);
         }
@@ -734,8 +735,6 @@ public class UIManager : MonoBehaviour
         RaycastHit hitInfo;
         if (Physics.Raycast(ray, out hitInfo))
         {
-
-
             currentPlaceableObject.transform.position = hitInfo.point;
             currentPlaceableObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
         }
@@ -758,7 +757,6 @@ public class UIManager : MonoBehaviour
         {
             double lng, lat;
             OnlineMapsControlBase.instance.GetCoords(out lng, out lat);
-            print("Placed actor @ lat: " + lat + " long " + lng);
 
             // we need to turn on the collider once we place the gameobject
             currentPlaceableObject.GetComponent<BoxCollider>().enabled = true;

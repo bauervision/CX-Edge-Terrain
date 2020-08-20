@@ -7,6 +7,7 @@ TagManager:
   - toolComponent
   - VertexEd
   - activePanel
+  - spawnedModel
   layers:
   - Default
   - TransparentFX

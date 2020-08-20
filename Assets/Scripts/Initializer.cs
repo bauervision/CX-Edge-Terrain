@@ -14,13 +14,26 @@ public class Initializer : MonoBehaviour
     public GameObject mapLight;
     public GameObject map;
     public GameObject horizon;
-    public Camera startCamera;
+
+    public GameObject startCameraGO;
+    private Camera startCamera;
     public Camera terrainCamera;
 
     public GameObject generateButton;
 
     public static bool MarkerSet = false;
     public static bool MinimumZoom = false;
+
+    private Vector3 initialCameraPosition = new Vector3(-512, 1024, 512);
+    private Vector3 initialCameraRotation = new Vector3(90, 180, 0);
+
+
+    private void Awake()
+    {
+        startCamera = startCameraGO.GetComponent<Camera>();
+        //print(startCameraGO.transform.localEulerAngles);
+    }
+
 
     public void LoadViewer()
     {
@@ -36,6 +49,7 @@ public class Initializer : MonoBehaviour
         TerrainLoadPanel.SetActive(true);
         BackButton.SetActive(true);
         map.SetActive(true);
+
     }
 
     public void BackToInitial()
@@ -47,12 +61,43 @@ public class Initializer : MonoBehaviour
         InitialPanel.SetActive(true);
         UIManager.myAppState = UIManager.AppState.Init;
         startCamera.enabled = true;
+
         terrainCamera.enabled = false;
         startCamera.gameObject.tag = "MainCamera";
-        OnlineMaps.instance.SetPositionAndZoom(0, 0, 2);
+        terrainCamera.gameObject.tag = "Untagged";
+
+        OnlineMaps.instance.SetPositionAndZoom(0, 0, 0);
         OnlineMapsTileSetControl.instance.allowUserControl = true;
         InfinityCode.OnlineMapsExamples.DrawMarkerRange.RestoreClickHandler();
-        UIManager.instance.NewMission(false);
+
+        UIManager.instance.ClearBeforeLoad();
+
+        sky.SetActive(false);
+        map.SetActive(false);
+        horizon.SetActive(false);
+        mapLight.SetActive(true);
+
+        // remove the 2d markers
+        if (OnlineMapsMarkerManager.CountItems > 0)
+        {
+            OnlineMapsMarkerManager.RemoveAllItems();
+        }
+
+        // and remove the octogon shapes
+        if (OnlineMapsDrawingElementManager.CountItems > 0)
+        {
+            OnlineMapsDrawingElementManager.RemoveAllItems();
+        }
+
+        // remove the 3d markers
+        if (OnlineMapsMarker3DManager.CountItems > 0)
+        {
+            OnlineMapsMarker3DManager.RemoveAllItems();
+        }
+
+        map.GetComponent<OnlineMapsCameraOrbit>().rotation = Vector2.zero;
+
+        generateButton.GetComponent<Button>().enabled = false;
 
     }
 
@@ -79,6 +124,7 @@ public class Initializer : MonoBehaviour
         CameraFly.isActive = true;
 
         startCamera.enabled = false;
+        startCamera.gameObject.tag = "Untagged";
         terrainCamera.enabled = true;
         terrainCamera.gameObject.tag = "MainCamera";
 
@@ -118,7 +164,6 @@ public class Initializer : MonoBehaviour
     }
     private void Start()
     {
-        startCamera.enabled = true;
         terrainCamera.enabled = false;
 
         //EditorPanel.SetActive(false);

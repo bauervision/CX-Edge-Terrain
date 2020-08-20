@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: -3059264924360207972}
   m_Layer: 0
   m_Name: RedArrow
-  m_TagString: Untagged
+  m_TagString: spawnedModel
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -104,9 +104,8 @@ MonoBehaviour:
     rotationX: 0
     rotationY: 0
     rotationZ: 0
-    scaleX: 0
-    scaleY: 0
-    scaleZ: 0
+    actorLatitude: 0
+    actorLongitude: 0
     description: 
   hoverColor: {r: 0.13794944, g: 0.9433962, b: 0.20744501, a: 1}
   savedColor: {r: 1, g: 0.69057083, b: 0, a: 1}

@@ -113,8 +113,10 @@ public class Initializer : MonoBehaviour
 
     public void GenerateEditorTerrain()
     {
+        UIManager.instance.InitEditor();
         UIManager.myAppState = UIManager.AppState.Editor;
         TerrainLoadPanel.SetActive(false);
+        EditorPanel.SetActive(true);
         sky.SetActive(true);
         mapLight.SetActive(false);
         horizon.SetActive(true);

@@ -257,11 +257,14 @@ public class UIManager : MonoBehaviour
     #region PublicMethods
     public void ToggleLibraryPanel()
     {
+        print("Library Toggle " + LibraryPanel.activeInHierarchy);
         LibraryPanel.SetActive(!LibraryPanel.activeInHierarchy);
         if (LibraryPanel.activeInHierarchy == true)
         {
             steps = 0;
         }
+
+
     }
 
     public void ToggleWeatherPanel()
@@ -412,7 +415,7 @@ public class UIManager : MonoBehaviour
     public void SetMissionToLoad(int missionIndex)
     {
         missionIndexToLoad = missionIndex - 1; //account for the "select mission" option
-        OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
+
     }
 
     public void SetMissionToLoadViewer(int missionIndex)
@@ -426,6 +429,65 @@ public class UIManager : MonoBehaviour
     }
 
     public static void LoadMission()
+    {
+        /* when we hit the load mission button, update all scene data with the desired mission */
+
+        // first clear out any current scene data
+        if (spawnedObjects.Count > 0)
+        {
+            instance.ClearBeforeLoad();
+        }
+
+        OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
+
+        // push the map update
+        WeatherManager.SetNewCoords(instance.missionList.missions[instance.missionIndexToLoad].missionLatitude, instance.missionList.missions[instance.missionIndexToLoad].missionLongitude);
+
+        // for each actor saved, instantiate the proper mesh and update its transform
+        foreach (SceneActor actor in instance.missionList.missions[instance.missionIndexToLoad].missionActors)
+        {
+            OnlineMapsControlBase3D control = OnlineMapsControlBase3D.instance;
+            OnlineMapsMarker3D marker3D;
+
+            if (control == null)
+            {
+                Debug.LogError("You must use the 3D control (Texture or Tileset).");
+                return;
+            }
+
+            // Marker position. Geographic coordinates.
+            Vector2 markerPosition = new Vector2((float)actor.actorLongitude, (float)actor.actorLatitude);
+
+            // Create 3D marker
+            marker3D = OnlineMapsMarker3DManager.CreateItem(markerPosition, instance.spawn[actor.actorIndex]);
+            GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], marker3D.relativePosition, marker3D.rotation);
+
+            newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+            // make sure we turn on the collider so we can select and translate the actors
+            newActor.GetComponent<BoxCollider>().enabled = true;
+            // push the saved data onto the game object
+            SelectModel.SetMySceneData(actor);
+
+            spawnedObjects.Add(newActor);
+            Destroy(marker3D.transform.gameObject);
+        }
+
+        // send weather data over to the weather manager
+        WeatherManager.SetWeatherData(instance.missionList.missions[instance.missionIndexToLoad].localMissionWeather);
+        instance.currentMission.text = instance.missionList.missions[instance.missionIndexToLoad].name;
+        //set thisMission to what we have loaded
+        instance.thisMission = instance.missionList.missions[instance.missionIndexToLoad];
+        instance.HandleDirectionsText($"{ instance.missionList.missions[instance.missionIndexToLoad].name} loaded successfully!");
+        // hide the mission and library panel once we load so user can see the whole scene view
+        instance.MissionButtonText.text = "LOADED!";
+        instance.StartCoroutine(instance.Countdown(instance.MissionButtonText, 3, "Mission Data"));
+        instance.MissionPanel.SetActive(false);
+        instance.LibraryPanel.SetActive(false);
+        instance.isSceneLoaded = true;
+
+    }
+
+    public void LoadMissionEditor()
     {
         /* when we hit the load mission button, update all scene data with the desired mission */
 
@@ -628,15 +690,6 @@ public class UIManager : MonoBehaviour
         if (viewerCanvas.enabled)
             viewerCanvas.enabled = false;
 
-        // editor init
-        NewMission(true);
-        HideAllPanels(-1);
-        LibraryPanel.SetActive(false);
-        WeatherPanel.SetActive(false);
-        MissionPanel.SetActive(false);
-        DeleteMissionButton.SetActive(false);
-        helpGuide.SetActive(false);
-
         HandleNewObjectHotkey();
 
         if (currentPlaceableObject != null)
@@ -648,12 +701,12 @@ public class UIManager : MonoBehaviour
 
         HandleUIUpdate();
 
+        DeleteMissionButton.SetActive(isSceneLoaded);
+        SaveMissionPanel.SetActive(isSceneLoaded);
+        NewMissionPanel.SetActive(!isSceneLoaded);
         // if we are creating a new mission, shows steps for creation
         if (!isSceneLoaded)
         {
-            DeleteMissionButton.SetActive(false);
-            SaveMissionPanel.SetActive(false);
-            NewMissionPanel.SetActive(true);
             switch (steps)
             {
                 case 0: Directions.text = library1; break;
@@ -665,10 +718,6 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            DeleteMissionButton.SetActive(true);
-            SaveMissionPanel.SetActive(true);
-            NewMissionPanel.SetActive(false);
-
             // we are editing a mission
             if (!isEditing)
             {
@@ -680,8 +729,22 @@ public class UIManager : MonoBehaviour
             }
         }
 
+
     }
 
+    public void InitEditor()
+    {
+        // editor init
+        NewMission(true);
+        HideAllPanels(-1);
+        LibraryPanel.SetActive(false);
+        WeatherPanel.SetActive(false);
+        MissionPanel.SetActive(false);
+        DeleteMissionButton.SetActive(false);
+        helpGuide.SetActive(false);
+
+
+    }
     private void HandleViewerState()
     {
         if (editorCanvas.enabled)

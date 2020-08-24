@@ -130,6 +130,11 @@ public class Initializer : MonoBehaviour
         terrainCamera.enabled = true;
         terrainCamera.gameObject.tag = "MainCamera";
 
+        GameObject placedmarker = GameObject.Find("Markers");
+        terrainCamera.transform.SetParent(placedmarker.transform);
+
+        Vector3 newCameraPosition = new Vector3(-516, 930, 236);
+        terrainCamera.transform.localEulerAngles = newCameraPosition;
         // WeatherManager.GetLocationWeatherData();
     }
 

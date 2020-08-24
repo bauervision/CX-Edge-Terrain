@@ -44,13 +44,13 @@ public class SelectModel : MonoBehaviour
 
     private void Start()
     {
-        defaultColor = GetComponent<MeshRenderer>().material.color;
+        defaultColor = GetComponentInChildren<MeshRenderer>().material.color;
     }
     private void OnMouseOver()
     {
         string isBlue = mySceneData.isBlueForce ? "Blue Force" : "Red Force";
 
-        GetComponent<MeshRenderer>().material.color = hoverColor;
+        GetComponentInChildren<MeshRenderer>().material.color = hoverColor;
         //Debug.Log(JsonUtility.ToJson(mySceneData));
         UIManager.SetSelected(mySceneData);
         Tooltip.ShowToolTip($"id: {mySceneData.id}\n{isBlue}\n{mySceneData.forceType}");
@@ -60,7 +60,7 @@ public class SelectModel : MonoBehaviour
     {
         if (!isSelected)
         {
-            GetComponent<MeshRenderer>().material.color = defaultColor;
+            GetComponentInChildren<MeshRenderer>().material.color = defaultColor;
         }
         UIManager.SetSelected(null);
         Tooltip.HideToolTip();

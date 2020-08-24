@@ -11063,7 +11063,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1229850945}
         m_MethodName: SaveMission
         m_Mode: 1
         m_Arguments:
@@ -15660,7 +15660,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1229850945}
         m_MethodName: SaveNewMission
         m_Mode: 1
         m_Arguments:
@@ -19014,7 +19014,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1229850945}
         m_MethodName: SetMissionName
         m_Mode: 0
         m_Arguments:

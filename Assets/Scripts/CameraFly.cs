@@ -39,10 +39,42 @@ public class CameraFly : MonoBehaviour
 
     private Material shader;
 
+    private GameObject activeCameraPanel;
+    private GameObject enterKeyPanel;
+    public Vector3 loadedVector3;
+
+    private bool cameraRotLoaded = false;
+
+    private void Awake()
+    {
+        activeCameraPanel = GameObject.Find("CameraActive");
+        enterKeyPanel = GameObject.Find("EnterKey");
+    }
+
     private void Start()
     {
-        cameraRotation = new Vector3(180, -45);
+        // start camera with this default rotation value
+        print("loadedVector" + loadedVector3);
+        cameraRotation = loadedVector3;
 
+        activeCameraPanel.SetActive(true);
+        enterKeyPanel.SetActive(false);
+
+    }
+
+    public void SetCameraVector(Vector3 setVector)
+    {
+        loadedVector3 = setVector;
+        print("setVector" + loadedVector3);
+    }
+
+    void HandleCameraUI()
+    {
+        activeCameraPanel.SetActive(!cameraLocked);
+        enterKeyPanel.SetActive(cameraLocked);
+        // if camera can fly, hide all the panels
+        if (!cameraLocked)
+            UIManager.instance.HideAllPanels();
     }
 
     // Update is called once per frame
@@ -51,6 +83,15 @@ public class CameraFly : MonoBehaviour
         if (Input.GetKeyDown(ToggleCameraMode))
         {
             cameraLocked = !cameraLocked;
+            HandleCameraUI();
+        }
+
+
+
+        if ((isActive && loadedVector3.x != 0) && !cameraRotLoaded)
+        {
+            cameraRotation = loadedVector3;
+            cameraRotLoaded = true;
         }
 
     }
@@ -58,7 +99,9 @@ public class CameraFly : MonoBehaviour
     // LateUpdate is called every frame, if the Behaviour is enabled
     private void LateUpdate()
     {
-        if (isActive)
+
+
+        if (cameraRotLoaded)
         {
 
             if (!cameraLocked)

@@ -11,6 +11,7 @@ public class Initializer : MonoBehaviour
     public GameObject sky;
     public GameObject TerrainLoadPanel;
 
+
     public GameObject mapLight;
     public GameObject map;
     public GameObject horizon;
@@ -25,6 +26,7 @@ public class Initializer : MonoBehaviour
     public static bool MarkerSet = false;
     public static bool MinimumZoom = false;
 
+    private GameObject CameraActiveCanvas;
     private Vector3 initialCameraPosition = new Vector3(-512, 1024, 512);
     private Vector3 initialCameraRotation = new Vector3(90, 180, 0);
 
@@ -32,6 +34,8 @@ public class Initializer : MonoBehaviour
     private void Awake()
     {
         startCamera = startCameraGO.GetComponent<Camera>();
+        CameraActiveCanvas = GameObject.Find("CameraActiveCanvas");
+        CameraActiveCanvas.SetActive(false);
     }
 
 
@@ -41,6 +45,7 @@ public class Initializer : MonoBehaviour
         InitialPanel.SetActive(false);
         ViewerPanel.SetActive(true);
         BackButton.SetActive(true);
+
     }
 
     public void LoadEditor()
@@ -51,10 +56,12 @@ public class Initializer : MonoBehaviour
         map.SetActive(true);
         horizon.SetActive(false);
 
+
     }
 
     public void BackToInitial()
     {
+        CameraActiveCanvas.SetActive(false);
         EditorPanel.SetActive(false);
         ViewerPanel.SetActive(false);
         TerrainLoadPanel.SetActive(false);
@@ -119,6 +126,7 @@ public class Initializer : MonoBehaviour
 
     public void ReturnToMissionSelect()
     {
+        CameraActiveCanvas.SetActive(false);
         UIManager.myAppState = UIManager.AppState.Init;
         horizon.SetActive(false);
         //UIManager.instance.viewerDropDown.value = 0;
@@ -141,7 +149,7 @@ public class Initializer : MonoBehaviour
         sky.SetActive(true);
         mapLight.SetActive(false);
         horizon.SetActive(true);
-
+        CameraActiveCanvas.SetActive(true);
         horizonMesh = GameObject.Find("HorizonMesh");
 
         OnlineMaps.instance.SetPositionAndZoom(WeatherManager.userLon, WeatherManager.userLat, 15);
@@ -161,8 +169,8 @@ public class Initializer : MonoBehaviour
         GameObject placedmarker = GameObject.Find("Markers");
         terrainCamera.transform.SetParent(placedmarker.transform);
 
-        Vector3 newCameraPosition = new Vector3(-516, 930, 236);
-        terrainCamera.transform.localEulerAngles = newCameraPosition;
+        // Vector3 newCameraPosition = new Vector3(-516, 930, 236);
+        // terrainCamera.transform.localEulerAngles = newCameraPosition;
         WeatherManager.GetLocationWeatherData();
     }
 
@@ -174,6 +182,7 @@ public class Initializer : MonoBehaviour
         sky.SetActive(true);
         mapLight.SetActive(false);
         horizon.SetActive(true);
+        CameraActiveCanvas.SetActive(true);
         // stop monitoring clicks on the terrain
         InfinityCode.OnlineMapsExamples.DrawMarkerRange.RemoveClickHandler();
         OnlineMapsTileSetControl.instance.allowUserControl = false;

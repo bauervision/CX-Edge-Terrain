@@ -282,7 +282,7 @@ namespace MissionWeather
                 GameObject.Find("SetTextLat").GetComponent<Text>().text = userLat.ToString();
                 GameObject.Find("SetTextLon").GetComponent<Text>().text = userLon.ToString();
             }
-            OnlineMaps.instance.SetPosition(userLon, userLat);
+            OnlineMaps.instance.SetPositionAndZoom(userLon, userLat, 15);
         }
         public void SetAlaska()
         {

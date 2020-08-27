@@ -14,6 +14,7 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
 
+    public bool isDevelopmentTest = false;
     public enum AppState { Init, Editor, Viewer };
     public static AppState myAppState;
 
@@ -45,6 +46,7 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region PrivateMembers
+
 
 
 
@@ -88,13 +90,14 @@ public class UIManager : MonoBehaviour
     private string currentElementDescription;
     private string currentElementType;// ground, weapon, etc
 
-
+    public GameObject missionCamera;
     #endregion
 
     private void Awake()
     {
         editorCanvas = GameObject.Find("EditorCanvas").GetComponent<Canvas>();
         viewerCanvas = GameObject.Find("ViewerCanvas").GetComponent<Canvas>();
+        missionCamera = GameObject.Find("TerrainCamera");
     }
 
     #region IEnumerators
@@ -147,6 +150,9 @@ public class UIManager : MonoBehaviour
     // PostSavedData is used to both create new missions and will also update them
     IEnumerator PostSavedData(bool isNewMission)
     {
+
+
+        // now convert the data
         string data = JsonUtility.ToJson(thisMission);
 
         print(data);
@@ -256,6 +262,19 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region PublicMethods
+
+    public void HideAllPanels()
+    {
+        if (LibraryPanel.activeInHierarchy)
+            LibraryPanel.SetActive(false);
+
+        if (WeatherPanel.activeInHierarchy)
+            WeatherPanel.SetActive(false);
+
+        if (MissionPanel.activeInHierarchy)
+            MissionPanel.SetActive(false);
+    }
+
     public void ToggleLibraryPanel()
     {
         LibraryPanel.SetActive(!LibraryPanel.activeInHierarchy);
@@ -403,6 +422,15 @@ public class UIManager : MonoBehaviour
         foreach (GameObject actor in spawnedObjects)
             thisMission.missionActors.Add(actor.GetComponent<SelectModel>().mySceneData);
 
+
+        // grab the terrain camera's transform data 
+        thisMission.CameraPosX = (float)System.Math.Round((double)missionCamera.transform.localPosition.x, 2);
+        thisMission.CameraPosY = (float)System.Math.Round((double)missionCamera.transform.localPosition.y);
+        thisMission.CameraPosZ = (float)System.Math.Round((double)missionCamera.transform.localPosition.z);
+        thisMission.CameraRotX = (float)System.Math.Round((double)missionCamera.transform.eulerAngles.x);
+        thisMission.CameraRotY = (float)System.Math.Round((double)missionCamera.transform.eulerAngles.y);
+        thisMission.CameraRotZ = (float)System.Math.Round((double)missionCamera.transform.eulerAngles.z);
+
         thisMission.localMissionWeather = WeatherManager.localWeather;
         thisMission.missionLatitude = WeatherManager.userLat;
         thisMission.missionLongitude = WeatherManager.userLon;
@@ -432,13 +460,15 @@ public class UIManager : MonoBehaviour
     {
         /* when we hit the load mission button, update all scene data with the desired mission */
 
+        Mission loadedMission = instance.missionList.missions[instance.missionIndexToLoad];
+
         OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
 
         // push the map update
-        WeatherManager.SetNewCoords(instance.missionList.missions[instance.missionIndexToLoad].missionLatitude, instance.missionList.missions[instance.missionIndexToLoad].missionLongitude);
+        WeatherManager.SetNewCoords(loadedMission.missionLatitude, loadedMission.missionLongitude);
 
         // for each actor saved, instantiate the proper mesh and update its transform
-        foreach (SceneActor actor in instance.missionList.missions[instance.missionIndexToLoad].missionActors)
+        foreach (SceneActor actor in loadedMission.missionActors)
         {
             GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], new Vector3((float)actor.positionX, (float)actor.positionY, (float)actor.positionZ), Quaternion.identity);
             newActor.transform.eulerAngles = new Vector3((float)actor.rotationX, (float)actor.rotationY, (float)actor.rotationZ);
@@ -448,31 +478,43 @@ public class UIManager : MonoBehaviour
 
         }
 
-        // send weather data over to the weather manager
-        WeatherManager.SetWeatherData(instance.missionList.missions[instance.missionIndexToLoad].localMissionWeather);
-        instance.currentMission.text = instance.missionList.missions[instance.missionIndexToLoad].name;
+        if (!instance.isDevelopmentTest)
+        {
+            // send weather data over to the weather manager
+            WeatherManager.SetWeatherData(loadedMission.localMissionWeather);
+        }
+
+        instance.currentMission.text = loadedMission.name;
         //set thisMission to what we have loaded
-        instance.thisMission = instance.missionList.missions[instance.missionIndexToLoad];
-        instance.HandleDirectionsText($"{ instance.missionList.missions[instance.missionIndexToLoad].name} loaded successfully!");
+        instance.thisMission = loadedMission;
+        instance.HandleDirectionsText($"{ loadedMission.name} loaded successfully!");
         // hide the mission and library panel once we load so user can see the whole scene view
         instance.MissionButtonText.text = "LOADED!";
         instance.StartCoroutine(instance.Countdown(instance.MissionButtonText, 3, "Mission Data"));
         instance.MissionPanel.SetActive(false);
         instance.LibraryPanel.SetActive(false);
+        // finally set the camera to the saved value
+        instance.missionCamera.GetComponent<CameraFly>().loadedVector3 = new Vector3(loadedMission.CameraRotY, -loadedMission.CameraRotX);
+
+        instance.missionCamera.transform.localPosition = new Vector3(loadedMission.CameraPosX, loadedMission.CameraPosY, loadedMission.CameraPosZ);
+        instance.missionCamera.transform.eulerAngles = new Vector3(loadedMission.CameraRotY, -loadedMission.CameraRotX);
+
         instance.isSceneLoaded = true;
 
     }
 
     public void LoadMissionEditor()
     {
+        Mission loadedMission = instance.missionList.missions[instance.missionIndexToLoad];
+
         /* when we hit the load mission button, update all scene data with the desired mission */
         OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
 
         // push the map update
-        WeatherManager.SetNewCoords(instance.missionList.missions[instance.missionIndexToLoad].missionLatitude, instance.missionList.missions[instance.missionIndexToLoad].missionLongitude);
+        WeatherManager.SetNewCoords(loadedMission.missionLatitude, loadedMission.missionLongitude);
 
         // for each actor saved, instantiate the proper mesh and update its transform
-        foreach (SceneActor actor in instance.missionList.missions[instance.missionIndexToLoad].missionActors)
+        foreach (SceneActor actor in loadedMission.missionActors)
         {
             GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], new Vector3((float)actor.positionX, (float)actor.positionY, (float)actor.positionZ), Quaternion.identity);
             newActor.transform.eulerAngles = new Vector3((float)actor.rotationX, (float)actor.rotationY, (float)actor.rotationZ);
@@ -482,16 +524,24 @@ public class UIManager : MonoBehaviour
         }
 
         // send weather data over to the weather manager
-        WeatherManager.SetWeatherData(instance.missionList.missions[instance.missionIndexToLoad].localMissionWeather);
-        instance.currentMission.text = instance.missionList.missions[instance.missionIndexToLoad].name;
+        if (!instance.isDevelopmentTest)
+        {
+            WeatherManager.SetWeatherData(loadedMission.localMissionWeather);
+        }
+
+        instance.currentMission.text = loadedMission.name;
         //set thisMission to what we have loaded
-        instance.thisMission = instance.missionList.missions[instance.missionIndexToLoad];
-        instance.HandleDirectionsText($"{ instance.missionList.missions[instance.missionIndexToLoad].name} loaded successfully!");
+        instance.thisMission = loadedMission;
+        instance.HandleDirectionsText($"{ loadedMission.name} loaded successfully!");
         // hide the mission and library panel once we load so user can see the whole scene view
         instance.MissionButtonText.text = "LOADED!";
         instance.StartCoroutine(instance.Countdown(instance.MissionButtonText, 3, "Mission Data"));
         instance.MissionPanel.SetActive(false);
         instance.LibraryPanel.SetActive(false);
+        // finally set the camera to the saved value
+        instance.missionCamera.transform.localPosition = new Vector3(loadedMission.CameraPosX, loadedMission.CameraPosY, loadedMission.CameraPosZ);
+        instance.missionCamera.transform.eulerAngles = new Vector3(loadedMission.CameraRotX, loadedMission.CameraRotY, loadedMission.CameraRotZ);
+
         instance.isSceneLoaded = true;
 
     }
@@ -713,7 +763,15 @@ public class UIManager : MonoBehaviour
             case AppState.Viewer: { HandleViewerState(); break; }
         }
 
+
+        if (Input.GetKeyDown("m"))
+        {
+            print(missionCamera.transform.eulerAngles);
+        }
+
     }
+
+
 
     private void HandleNewObjectHotkey()
     {

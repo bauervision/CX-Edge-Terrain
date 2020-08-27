@@ -14,8 +14,8 @@ namespace MissionWeather
     [System.Serializable]
     public class WeatherData
     {
-        public float lat;
-        public float lon;
+        public double lat;
+        public double lon;
         public string timezone;
         public float time;
         public WeatherDetails current;
@@ -94,8 +94,8 @@ namespace MissionWeather
         #endregion
 
         #region PrivateMembers
-        public static double userLat = 36.695620f;// my house
-        public static double userLon = -76.198450f;
+        public static double userLat = 36.695620;// my house
+        public static double userLon = -76.198450;
 
         #endregion
 
@@ -190,7 +190,7 @@ namespace MissionWeather
         }
         public void SetNewLat(string newLat)
         {
-            userLat = float.Parse(newLat);
+            userLat = double.Parse(newLat);
             var latText = GameObject.Find("SetTextLat");
             if (latText != null)
                 latText.GetComponent<Text>().text = userLat.ToString();
@@ -200,7 +200,7 @@ namespace MissionWeather
 
         public void SetNewLon(string newLon)
         {
-            userLon = float.Parse(newLon);
+            userLon = double.Parse(newLon);
             var lonText = GameObject.Find("SetTextLon");
             if (lonText != null)
                 lonText.GetComponent<Text>().text = userLon.ToString();
@@ -250,8 +250,8 @@ namespace MissionWeather
         {
             float visibilityToMiles = localWeather.current.visibility / 1609;
 
-            GetComponent<TOD_Sky>().World.Latitude = localWeather.lat;
-            GetComponent<TOD_Sky>().World.Longitude = localWeather.lon;
+            GetComponent<TOD_Sky>().World.Latitude = (float)localWeather.lat;
+            GetComponent<TOD_Sky>().World.Longitude = (float)localWeather.lon;
             GetComponent<TOD_Sky>().Clouds.Coverage = localWeather.current.clouds / 100;
             GetComponent<TOD_Sky>().Atmosphere.Fogginess = visibilityToMiles / 100;// convert to percentage
             GetComponent<TOD_Sky>().Cycle.Year = System.DateTime.Now.Year;
@@ -271,8 +271,7 @@ namespace MissionWeather
         {
             userLat = lat;
             userLon = lon;
-            print("Set Coords" + lat + " : " + lon);
-            OnlineMaps.instance.SetPosition(lon, lat);
+            OnlineMaps.instance.SetPositionAndZoom(lon, lat, 15);
         }
 
         public void SetNewCoords()
@@ -283,35 +282,33 @@ namespace MissionWeather
                 GameObject.Find("SetTextLat").GetComponent<Text>().text = userLat.ToString();
                 GameObject.Find("SetTextLon").GetComponent<Text>().text = userLon.ToString();
             }
-
-            print("Set Coords" + userLon + " : " + userLat);
-            OnlineMaps.instance.SetPosition((double)userLon, (double)userLat);
+            OnlineMaps.instance.SetPosition(userLon, userLat);
         }
         public void SetAlaska()
         {
-            userLat = 60.256f;
-            userLon = -154.288f;
+            userLat = 60.256;
+            userLon = -154.288;
             SetNewCoords();
         }
 
         public void SetDC()
         {
-            userLat = 38.89f;
-            userLon = -77.035f;
+            userLat = 38.89;
+            userLon = -77.035;
             SetNewCoords();
         }
 
         public void SetUK()
         {
-            userLat = 53.19f;
-            userLon = -2.89f;
+            userLat = 53.19;
+            userLon = -2.89;
             SetNewCoords();
         }
 
         public void SetAfghan()
         {
-            userLat = 33.049f;
-            userLon = 65.086f;
+            userLat = 33.049;
+            userLon = 65.086;
             SetNewCoords();
         }
 

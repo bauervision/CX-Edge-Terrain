@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 3666328890270715081}
   m_LocalRotation: {x: 0.000000021855694, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 4, z: 4}
+  m_LocalScale: {x: 8, y: 8, z: 8}
   m_Children:
   - {fileID: 6443272927853133507}
   m_Father: {fileID: 0}
@@ -51,9 +51,6 @@ MonoBehaviour:
     forceType: Rally
     id: 0
     actorIndex: 0
-    positionX: 0
-    positionY: 0
-    positionZ: 0
     rotationX: 0
     rotationY: 0
     rotationZ: 0
@@ -87,7 +84,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a4fb88eaf776e44898423049fad5886, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: 70
 --- !u!1 &7355981661777408111
 GameObject:
   m_ObjectHideFlags: 0

@@ -79,7 +79,7 @@ public class UIManager : MonoBehaviour
     private string library3 = "Use the mouse wheel to set +/- negative scaling. Then hit space bar again to enter rotation mode";
     private string library4 = "Continue to use the mouse wheel to now set the rotation angle of the actor and then finalize placement with the Left mouse button";
 
-    private string loadingData = "Loading Mission Data...";
+    //private string loadingData = "Loading Mission Data...";
 
     private string savingData = "Saving Mission Data...";
     private string savingDataSuccess = "Mission Saved Successfully!";
@@ -149,6 +149,7 @@ public class UIManager : MonoBehaviour
     {
         string data = JsonUtility.ToJson(thisMission);
 
+        print(data);
         string url = $"https://us-central1-octo-ar-demo.cloudfunctions.net/addSavedMission";
         var request = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(data);
@@ -257,7 +258,6 @@ public class UIManager : MonoBehaviour
     #region PublicMethods
     public void ToggleLibraryPanel()
     {
-        print("Library Toggle " + LibraryPanel.activeInHierarchy);
         LibraryPanel.SetActive(!LibraryPanel.activeInHierarchy);
         if (LibraryPanel.activeInHierarchy == true)
         {
@@ -432,12 +432,6 @@ public class UIManager : MonoBehaviour
     {
         /* when we hit the load mission button, update all scene data with the desired mission */
 
-        // first clear out any current scene data
-        if (spawnedObjects.Count > 0)
-        {
-            instance.ClearBeforeLoad();
-        }
-
         OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
 
         // push the map update
@@ -446,30 +440,12 @@ public class UIManager : MonoBehaviour
         // for each actor saved, instantiate the proper mesh and update its transform
         foreach (SceneActor actor in instance.missionList.missions[instance.missionIndexToLoad].missionActors)
         {
-            OnlineMapsControlBase3D control = OnlineMapsControlBase3D.instance;
-            OnlineMapsMarker3D marker3D;
-
-            if (control == null)
-            {
-                Debug.LogError("You must use the 3D control (Texture or Tileset).");
-                return;
-            }
-
-            // Marker position. Geographic coordinates.
-            Vector2 markerPosition = new Vector2((float)actor.actorLongitude, (float)actor.actorLatitude);
-
-            // Create 3D marker
-            marker3D = OnlineMapsMarker3DManager.CreateItem(markerPosition, instance.spawn[actor.actorIndex]);
-            GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], marker3D.relativePosition, marker3D.rotation);
-
-            newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+            GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], new Vector3((float)actor.positionX, (float)actor.positionY, (float)actor.positionZ), Quaternion.identity);
+            newActor.transform.eulerAngles = new Vector3((float)actor.rotationX, (float)actor.rotationY, (float)actor.rotationZ);
             // make sure we turn on the collider so we can select and translate the actors
             newActor.GetComponent<BoxCollider>().enabled = true;
-            // push the saved data onto the game object
-            SelectModel.SetMySceneData(actor);
-
             spawnedObjects.Add(newActor);
-            Destroy(marker3D.transform.gameObject);
+
         }
 
         // send weather data over to the weather manager
@@ -490,13 +466,7 @@ public class UIManager : MonoBehaviour
     public void LoadMissionEditor()
     {
         /* when we hit the load mission button, update all scene data with the desired mission */
-
-        // first clear out any current scene data
-        if (spawnedObjects.Count > 0)
-        {
-            instance.ClearBeforeLoad();
-        }
-
+        OnlineMaps.instance.SetPositionAndZoom(loadedMissionLon, loadedMissionLat, 15);
 
         // push the map update
         WeatherManager.SetNewCoords(instance.missionList.missions[instance.missionIndexToLoad].missionLatitude, instance.missionList.missions[instance.missionIndexToLoad].missionLongitude);
@@ -504,30 +474,11 @@ public class UIManager : MonoBehaviour
         // for each actor saved, instantiate the proper mesh and update its transform
         foreach (SceneActor actor in instance.missionList.missions[instance.missionIndexToLoad].missionActors)
         {
-            OnlineMapsControlBase3D control = OnlineMapsControlBase3D.instance;
-            OnlineMapsMarker3D marker3D;
-
-            if (control == null)
-            {
-                Debug.LogError("You must use the 3D control (Texture or Tileset).");
-                return;
-            }
-
-            // Marker position. Geographic coordinates.
-            Vector2 markerPosition = new Vector2((float)actor.actorLongitude, (float)actor.actorLatitude);
-
-            // Create 3D marker
-            marker3D = OnlineMapsMarker3DManager.CreateItem(markerPosition, instance.spawn[actor.actorIndex]);
-            GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], marker3D.relativePosition, marker3D.rotation);
-
-            newActor.transform.eulerAngles = new Vector3(actor.rotationX, actor.rotationY, actor.rotationZ);
+            GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], new Vector3((float)actor.positionX, (float)actor.positionY, (float)actor.positionZ), Quaternion.identity);
+            newActor.transform.eulerAngles = new Vector3((float)actor.rotationX, (float)actor.rotationY, (float)actor.rotationZ);
             // make sure we turn on the collider so we can select and translate the actors
             newActor.GetComponent<BoxCollider>().enabled = true;
-            // push the saved data onto the game object
-            SelectModel.SetMySceneData(actor);
-
             spawnedObjects.Add(newActor);
-            Destroy(marker3D.transform.gameObject);
         }
 
         // send weather data over to the weather manager
@@ -818,28 +769,29 @@ public class UIManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+
             double lng, lat;
-            OnlineMapsControlBase.instance.GetCoords(out lng, out lat);
+            OnlineMapsControlBase3D.instance.GetCoords(out lng, out lat);
 
             // we need to turn on the collider once we place the gameobject
             currentPlaceableObject.GetComponent<BoxCollider>().enabled = true;
 
             int currentID = spawnedObjects.Count - 1;
-            // Now set some data to retrieve from the model when hovering
 
             // now handle our Sceneactor class
             SceneActor newActor = new SceneActor();
             newActor.forceType = currentForce;
             // set its transforms to currentPlaceableObject
-            newActor.SetPosition(currentID, activeSpawnIndex, isBlueForceObject, currentPlaceableObject.transform.position, currentPlaceableObject.transform.eulerAngles, lat, lng);
+            newActor.SetPosition(currentID, activeSpawnIndex, isBlueForceObject, currentPlaceableObject.transform.localPosition, currentPlaceableObject.transform.localEulerAngles, lat, lng);
+
             // and add it to the list
             savedObjects.Add(newActor);
 
             // store this data on the actual gameobject to retrieve later
             SelectModel.SetMySceneData(newActor);
-            currentPlaceableObject = null;
             clickCount = 0;
             steps = -1;
+            currentPlaceableObject = null;
         }
     }
 

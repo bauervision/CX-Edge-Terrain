@@ -22,6 +22,7 @@ public class SelectModel : MonoBehaviour
     public static void SetMySceneData(SceneActor myData)
     {
         instance.mySceneData = myData;
+        //Debug.Log(JsonUtility.ToJson(myData));
     }
 
     public void SetMyDescription(string value)
@@ -33,12 +34,10 @@ public class SelectModel : MonoBehaviour
     {
         if (isSelected)
         {
-            mySceneData.positionX = (float)System.Math.Round(transform.position.x, 2);
-            mySceneData.positionY = (float)System.Math.Round(transform.position.y, 2);
-            mySceneData.positionZ = (float)System.Math.Round(transform.position.z, 2);
-            mySceneData.rotationX = (float)System.Math.Round(transform.rotation.x, 2);
-            mySceneData.rotationY = (float)System.Math.Round(transform.rotation.y, 2);
-            mySceneData.rotationZ = (float)System.Math.Round(transform.rotation.z, 2);
+            print("need to pass new lat and long");
+            mySceneData.rotationX = transform.rotation.x;
+            mySceneData.rotationY = transform.rotation.y;
+            mySceneData.rotationZ = transform.rotation.z;
         }
     }
 
@@ -112,7 +111,7 @@ public class SelectModel : MonoBehaviour
 
             MoveToMouse();
             mouseWheelRotation += Input.mouseScrollDelta.y;
-            transform.Rotate(Vector3.up, mySceneData.rotationY + (mouseWheelRotation * 10f));
+            transform.Rotate(Vector3.up, (float)mySceneData.rotationY + (mouseWheelRotation * 10f));
         }
 
         if (Input.GetMouseButtonDown(1))

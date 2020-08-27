@@ -14,6 +14,7 @@ public class Initializer : MonoBehaviour
     public GameObject mapLight;
     public GameObject map;
     public GameObject horizon;
+    private GameObject horizonMesh;
 
     public GameObject startCameraGO;
     private Camera startCamera;
@@ -31,7 +32,6 @@ public class Initializer : MonoBehaviour
     private void Awake()
     {
         startCamera = startCameraGO.GetComponent<Camera>();
-        //print(startCameraGO.transform.localEulerAngles);
     }
 
 
@@ -49,6 +49,7 @@ public class Initializer : MonoBehaviour
         TerrainLoadPanel.SetActive(true);
         BackButton.SetActive(true);
         map.SetActive(true);
+        horizon.SetActive(false);
 
     }
 
@@ -61,6 +62,8 @@ public class Initializer : MonoBehaviour
         InitialPanel.SetActive(true);
         UIManager.myAppState = UIManager.AppState.Init;
         startCamera.enabled = true;
+
+        terrainCamera.transform.SetParent(null);
 
         terrainCamera.enabled = false;
         startCamera.gameObject.tag = "MainCamera";
@@ -76,6 +79,12 @@ public class Initializer : MonoBehaviour
         map.SetActive(false);
         horizon.SetActive(false);
         mapLight.SetActive(true);
+
+
+
+        MinimumZoom = false;
+        MarkerSet = false;
+
 
         // remove the 2d markers
         if (OnlineMapsMarkerManager.CountItems > 0)
@@ -95,6 +104,12 @@ public class Initializer : MonoBehaviour
             OnlineMapsMarker3DManager.RemoveAllItems();
         }
 
+        if (horizonMesh != null)
+        {
+            print("Found HorizonMesh");
+            Destroy(horizonMesh);
+        }
+
         map.GetComponent<OnlineMapsCameraOrbit>().rotation = Vector2.zero;
 
         generateButton.GetComponent<Button>().enabled = false;
@@ -105,10 +120,16 @@ public class Initializer : MonoBehaviour
     public void ReturnToMissionSelect()
     {
         UIManager.myAppState = UIManager.AppState.Init;
+        horizon.SetActive(false);
         //UIManager.instance.viewerDropDown.value = 0;
         ViewerPanel.SetActive(true);
         startCamera.enabled = true;
         terrainCamera.enabled = false;
+        if (horizonMesh != null)
+        {
+            print("Found HorizonMesh");
+            Destroy(horizonMesh);
+        }
     }
 
     public void GenerateEditorTerrain()
@@ -120,7 +141,14 @@ public class Initializer : MonoBehaviour
         sky.SetActive(true);
         mapLight.SetActive(false);
         horizon.SetActive(true);
+
+        horizonMesh = GameObject.Find("HorizonMesh");
+
+        OnlineMaps.instance.SetPositionAndZoom(WeatherManager.userLon, WeatherManager.userLat, 15);
+
         // stop monitoring clicks on the terrain
+        map.GetComponent<GetCoords>().acceptClicks = false;
+        // stop drawing the range markers
         InfinityCode.OnlineMapsExamples.DrawMarkerRange.RemoveClickHandler();
         OnlineMapsTileSetControl.instance.allowUserControl = false;
         CameraFly.isActive = true;
@@ -135,7 +163,7 @@ public class Initializer : MonoBehaviour
 
         Vector3 newCameraPosition = new Vector3(-516, 930, 236);
         terrainCamera.transform.localEulerAngles = newCameraPosition;
-        // WeatherManager.GetLocationWeatherData();
+        WeatherManager.GetLocationWeatherData();
     }
 
     public void LoadMissionTerrain()
@@ -155,7 +183,12 @@ public class Initializer : MonoBehaviour
         terrainCamera.enabled = true;
         terrainCamera.gameObject.tag = "MainCamera";
 
-        // WeatherManager.GetLocationWeatherData();
+        horizonMesh = GameObject.Find("HorizonMesh");
+        if (horizonMesh != null)
+            print("horizonMesh.activeInHierarchy " + horizonMesh.activeInHierarchy);
+
+
+        WeatherManager.GetLocationWeatherData();
         UIManager.LoadMission();
 
 

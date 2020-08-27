@@ -8,7 +8,7 @@ public class SceneActor
     public string forceType;
     public int id;
     public int actorIndex;
-    public float positionX, positionY, positionZ, rotationX, rotationY, rotationZ;
+    public double positionX, positionY, positionZ, rotationX, rotationY, rotationZ;
 
     public double actorLatitude;
     public double actorLongitude;
@@ -25,12 +25,14 @@ public class SceneActor
         this.actorLatitude = lat;
         this.actorLongitude = lng;
 
-        this.positionX = (float)System.Math.Round(pos.x, 2);
-        this.positionY = (float)System.Math.Round(pos.y, 2);
-        this.positionZ = (float)System.Math.Round(pos.z, 2);
-        this.rotationX = (float)System.Math.Round(rot.x, 2);
-        this.rotationY = (float)System.Math.Round(rot.y, 2);
-        this.rotationZ = (float)System.Math.Round(rot.z, 2);
+        this.positionX = pos.x;
+        this.positionY = pos.y;
+        this.positionZ = pos.z;
+
+        this.rotationX = rot.x;
+        this.rotationY = rot.y;
+        this.rotationZ = rot.z;
+
         this.description = "";
     }
 

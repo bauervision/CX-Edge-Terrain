@@ -168,6 +168,8 @@ public class Initializer : MonoBehaviour
 
         GameObject placedmarker = GameObject.Find("Markers");
         terrainCamera.transform.SetParent(placedmarker.transform);
+        terrainCamera.GetComponent<CameraFly>().loadedVector3 = new Vector3(180, -45);
+        terrainCamera.transform.eulerAngles = new Vector3(180, -45);
 
         // Vector3 newCameraPosition = new Vector3(-516, 930, 236);
         // terrainCamera.transform.localEulerAngles = newCameraPosition;
@@ -202,6 +204,39 @@ public class Initializer : MonoBehaviour
 
 
     }
+
+    public void LoadEditorMission()
+    {
+        UIManager.myAppState = UIManager.AppState.Editor;
+        ViewerPanel.SetActive(false);
+
+        EditorPanel.SetActive(true);
+
+        sky.SetActive(true);
+        mapLight.SetActive(false);
+        horizon.SetActive(true);
+        CameraActiveCanvas.SetActive(true);
+
+        // stop monitoring clicks on the terrain
+        InfinityCode.OnlineMapsExamples.DrawMarkerRange.RemoveClickHandler();
+        OnlineMapsTileSetControl.instance.allowUserControl = false;
+        CameraFly.isActive = true;
+
+        startCamera.enabled = false;
+        terrainCamera.enabled = true;
+        terrainCamera.gameObject.tag = "MainCamera";
+
+        horizonMesh = GameObject.Find("HorizonMesh");
+        if (horizonMesh != null)
+            print("horizonMesh.activeInHierarchy " + horizonMesh.activeInHierarchy);
+
+
+        WeatherManager.GetLocationWeatherData();
+        UIManager.LoadMission();
+
+
+    }
+
 
 
 

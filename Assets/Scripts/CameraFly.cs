@@ -54,9 +54,7 @@ public class CameraFly : MonoBehaviour
     private void Start()
     {
         // start camera with this default rotation value
-        print("loadedVector" + loadedVector3);
-        cameraRotation = loadedVector3;
-
+        cameraRotation = new Vector3(-180, 45);
         activeCameraPanel.SetActive(true);
         enterKeyPanel.SetActive(false);
 
@@ -100,10 +98,8 @@ public class CameraFly : MonoBehaviour
     private void LateUpdate()
     {
 
-
         if (cameraRotLoaded)
         {
-
             if (!cameraLocked)
             {
 

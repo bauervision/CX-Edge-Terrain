@@ -30,6 +30,7 @@ public class UIManager : MonoBehaviour
     public Text Directions;
     public Dropdown dropDown;
     public Dropdown viewerDropDown;
+    public Dropdown editorDropDown;
     public Text currentMission;
     public Text currentElement;
     public Text currentElementForce;
@@ -81,6 +82,8 @@ public class UIManager : MonoBehaviour
     private string library3 = "Use the mouse wheel to set +/- negative scaling. Then hit space bar again to enter rotation mode";
     private string library4 = "Continue to use the mouse wheel to now set the rotation angle of the actor and then finalize placement with the Left mouse button";
 
+    private string library5 = "Great job!\n\nTo add another model of the same type to the scene, simply re-activate placement mode with the space bar.\n\nTo add a different model, select it from the library panel first, then space bar to turn on placement mode.";
+
     //private string loadingData = "Loading Mission Data...";
 
     private string savingData = "Saving Mission Data...";
@@ -90,6 +93,7 @@ public class UIManager : MonoBehaviour
     private string currentElementDescription;
     private string currentElementType;// ground, weapon, etc
 
+    private bool showingHelp = true;
     public GameObject missionCamera;
     #endregion
 
@@ -98,6 +102,7 @@ public class UIManager : MonoBehaviour
         editorCanvas = GameObject.Find("EditorCanvas").GetComponent<Canvas>();
         viewerCanvas = GameObject.Find("ViewerCanvas").GetComponent<Canvas>();
         missionCamera = GameObject.Find("TerrainCamera");
+
     }
 
     #region IEnumerators
@@ -241,6 +246,7 @@ public class UIManager : MonoBehaviour
 
                 dropDown.options = editor_dropDownOptions;
                 viewerDropDown.options = editor_dropDownOptions;
+                editorDropDown.options = editor_dropDownOptions;
                 HandleDirectionsText($"All {missionList.missions.Count} missions successfully loaded!");
                 MissionButtonText.text = "LOADED";
                 StartCoroutine(Countdown(MissionButtonText, 2, "Mission Data"));
@@ -277,9 +283,17 @@ public class UIManager : MonoBehaviour
 
     public void ToggleLibraryPanel()
     {
+        // if we are showing the library, we want to add new actors, so we arent editing anymore
+        isEditing = false;
+
         LibraryPanel.SetActive(!LibraryPanel.activeInHierarchy);
+        if (showingHelp)
+            helpGuide.SetActive(true);
+
+
         if (LibraryPanel.activeInHierarchy == true)
         {
+
             steps = 0;
         }
 
@@ -291,6 +305,9 @@ public class UIManager : MonoBehaviour
         WeatherPanel.SetActive(!WeatherPanel.activeInHierarchy);
         if (MissionPanel.activeInHierarchy)
             MissionPanel.SetActive(false);
+
+        if (helpGuide.activeInHierarchy)
+            helpGuide.SetActive(false);
     }
 
     public void ToggleMissionPanel()
@@ -299,6 +316,9 @@ public class UIManager : MonoBehaviour
 
         if (WeatherPanel.activeInHierarchy)
             WeatherPanel.SetActive(false);
+
+        if (helpGuide.activeInHierarchy)
+            helpGuide.SetActive(false);
     }
 
     public void Load_Blu_Troops()
@@ -470,6 +490,8 @@ public class UIManager : MonoBehaviour
         // for each actor saved, instantiate the proper mesh and update its transform
         foreach (SceneActor actor in loadedMission.missionActors)
         {
+            // OnlineMapsMarker3D marker3D = OnlineMapsMarker3DManager.CreateItem(actor.actorLongitude, actor.actorLatitude, instance.spawn[actor.actorIndex]);
+
             GameObject newActor = Instantiate(instance.spawn[actor.actorIndex], new Vector3((float)actor.positionX, (float)actor.positionY, (float)actor.positionZ), Quaternion.identity);
             newActor.transform.eulerAngles = new Vector3((float)actor.rotationX, (float)actor.rotationY, (float)actor.rotationZ);
             // make sure we turn on the collider so we can select and translate the actors
@@ -538,7 +560,7 @@ public class UIManager : MonoBehaviour
         instance.StartCoroutine(instance.Countdown(instance.MissionButtonText, 3, "Mission Data"));
         instance.MissionPanel.SetActive(false);
         instance.LibraryPanel.SetActive(false);
-        // finally set the camera to the saved value
+        // // finally set the camera to the saved value
         instance.missionCamera.transform.localPosition = new Vector3(loadedMission.CameraPosX, loadedMission.CameraPosY, loadedMission.CameraPosZ);
         instance.missionCamera.transform.eulerAngles = new Vector3(loadedMission.CameraRotX, loadedMission.CameraRotY, loadedMission.CameraRotZ);
 
@@ -566,7 +588,8 @@ public class UIManager : MonoBehaviour
 
     public void ShowHelp(bool value)
     {
-        helpGuide.SetActive(value);
+        showingHelp = value;
+
     }
 
 
@@ -620,6 +643,7 @@ public class UIManager : MonoBehaviour
         instance = this;
         myAppState = AppState.Init;
 
+
         // fetch the available missions
         StartCoroutine(LoadAvailableMissions("https://us-central1-octo-ar-demo.cloudfunctions.net/getAllMissions"));
     }
@@ -669,6 +693,9 @@ public class UIManager : MonoBehaviour
         // if we have a mission loaded, we're in edit mode
         currentMode.text = isSceneLoaded ? "Edit\nMission" : "Create New\nMission";
 
+        // if the library panel is open, display the help guide if it is toggled
+        helpGuide.SetActive(((LibraryPanel.activeInHierarchy == true) && showingHelp));
+
 
     }
 
@@ -714,6 +741,7 @@ public class UIManager : MonoBehaviour
                 case 1: Directions.text = library2; break;
                 case 2: Directions.text = library3; break;
                 case 3: Directions.text = library4; break;
+                case 4: Directions.text = library5; break;
                 default: break;
             }
         }
@@ -764,10 +792,7 @@ public class UIManager : MonoBehaviour
         }
 
 
-        if (Input.GetKeyDown("m"))
-        {
-            print(missionCamera.transform.eulerAngles);
-        }
+
 
     }
 
@@ -778,7 +803,7 @@ public class UIManager : MonoBehaviour
         if (Input.GetKeyDown(newObjectHotkey))
         {
             steps++;
-            if (clickCount < 3)
+            if (clickCount < 4)
             {
                 clickCount++;
             }
@@ -847,8 +872,8 @@ public class UIManager : MonoBehaviour
 
             // store this data on the actual gameobject to retrieve later
             SelectModel.SetMySceneData(newActor);
-            clickCount = 0;
-            steps = -1;
+            //clickCount = 0;
+            steps = 4;
             currentPlaceableObject = null;
         }
     }
